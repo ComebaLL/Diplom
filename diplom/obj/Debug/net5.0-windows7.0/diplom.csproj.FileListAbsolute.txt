@@ -1,0 +1,7 @@
+C:\забгу\диплом\diplom\obj\Debug\net5.0-windows7.0\diplom.csproj.AssemblyReference.cache
+C:\забгу\диплом\diplom\obj\Debug\net5.0-windows7.0\diplom.Form1.resources
+C:\забгу\диплом\diplom\obj\Debug\net5.0-windows7.0\diplom.csproj.GenerateResource.cache
+C:\забгу\диплом\diplom\obj\Debug\net5.0-windows7.0\diplom.GeneratedMSBuildEditorConfig.editorconfig
+C:\забгу\диплом\diplom\obj\Debug\net5.0-windows7.0\diplom.AssemblyInfoInputs.cache
+C:\забгу\диплом\diplom\obj\Debug\net5.0-windows7.0\diplom.AssemblyInfo.cs
+C:\забгу\диплом\diplom\obj\Debug\net5.0-windows7.0\diplom.csproj.CoreCompileInputs.cache

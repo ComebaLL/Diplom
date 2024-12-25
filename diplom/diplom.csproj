@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspose.GIS" Version="24.11.0" />
+    <PackageReference Include="GMap.NET.Core" Version="2.1.6" />
+    <PackageReference Include="GMap.NET.WinForms" Version="2.1.6" />
+  </ItemGroup>
+
+</Project>
