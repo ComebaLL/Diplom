@@ -34,3 +34,7 @@ C:\забгу\диплом\diplom\obj\Debug\net8.0-windows7.0\refint\diplom.dll
 C:\забгу\диплом\diplom\obj\Debug\net8.0-windows7.0\diplom.pdb
 C:\забгу\диплом\diplom\obj\Debug\net8.0-windows7.0\diplom.genruntimeconfig.cache
 C:\забгу\диплом\diplom\obj\Debug\net8.0-windows7.0\ref\diplom.dll
+C:\забгу\диплом\diplom\obj\Debug\net8.0-windows7.0\diplom.csproj.ResolveComReference.cache
+C:\забгу\диплом\diplom\bin\Debug\net8.0-windows7.0\LiveCharts.dll
+C:\забгу\диплом\diplom\bin\Debug\net8.0-windows7.0\LiveCharts.WinForms.dll
+C:\забгу\диплом\diplom\bin\Debug\net8.0-windows7.0\LiveCharts.Wpf.dll

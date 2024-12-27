@@ -57,6 +57,14 @@
             "GMap.NET.WinForms": {
               "target": "Package",
               "version": "[2.1.6, )"
+            },
+            "LiveCharts": {
+              "target": "Package",
+              "version": "[0.9.7, )"
+            },
+            "LiveCharts.WinForms": {
+              "target": "Package",
+              "version": "[0.9.7.1, )"
             }
           },
           "imports": [

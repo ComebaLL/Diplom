@@ -1,153 +1,135 @@
-﻿// MainForm.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using GMap.NET;
-using GMap.NET.WindowsForms;
-using GMap.NET.WindowsForms.Markers;
-using GMap.NET.MapProviders;
+using LiveCharts;
+using LiveCharts.WinForms;
+using LiveCharts.Wpf;
 
 namespace SolarPowerCalculator
 {
     public class MainForm : Form
     {
+        private TextBox angleTextBox;
+        private TextBox powerTextBox;
+        private Button calculateButton;
+        private Button mapButton;
+
         public MainForm()
         {
-            // Устанавливаем заголовок окна
+            // Настройка формы
             this.Text = "Solar Power Calculator";
-            this.Size = new Size(1000, 600);
+            this.Size = new Size(400, 200);
 
-            // Создаем метки и текстовые поля для каждого параметра
-            Label angleLabel = new Label { Text = "Угол установки:", Location = new Point(10, 10), Width = 150 };
-            TextBox angleTextBox = new TextBox { Location = new Point(170, 10), Width = 100 };
-            this.Controls.Add(angleLabel);
-            this.Controls.Add(angleTextBox);
-
-            Label powerLabel = new Label { Text = "Мощность установки (Вт):", Location = new Point(10, 40), Width = 150 };
-            TextBox powerTextBox = new TextBox { Location = new Point(170, 40), Width = 100 };
-            this.Controls.Add(powerLabel);
-            this.Controls.Add(powerTextBox);
-
-            // Создаем кнопку для открытия карты
-            Button mapButton = new Button
+            // Поле для угла поворота
+            Label angleLabel = new Label
             {
-                Text = "Открыть карту",
-                Location = new Point(10, 80),
+                Text = "Угол установки (град):",
+                Location = new Point(10, 20),
                 Width = 150
             };
-            this.Controls.Add(mapButton);
+            this.Controls.Add(angleLabel);
 
-            // Обработчик нажатия кнопки для открытия карты
-            mapButton.Click += (sender, args) =>
+            angleTextBox = new TextBox
             {
-                MapForm mapForm = new MapForm();
-                mapForm.Show();
+                Location = new Point(170, 20),
+                Width = 100
             };
-        }
-    }
+            this.Controls.Add(angleTextBox);
 
-    public class MapForm : Form
-    {
-        private GMapControl gmap;
-        private GMapOverlay gridOverlay;
-        private List<PointLatLng> selectedPoints;
-
-        public MapForm()
-        {
-            // Устанавливаем заголовок окна
-            this.Text = "Выбор сектора на карте";
-            this.Size = new Size(800, 600);
-
-            selectedPoints = new List<PointLatLng>();
-
-            // Инициализация карты
-            gmap = new GMapControl();
-            gmap.Dock = DockStyle.Fill;
-            gmap.MapProvider = GMapProviders.GoogleMap;
-            gmap.Position = new PointLatLng(55.7558, 37.6173); // Координаты Москвы
-            gmap.MinZoom = 2;
-            gmap.MaxZoom = 18;
-            gmap.Zoom = 5;
-            gmap.MouseClick += Gmap_MouseClick;
-            this.Controls.Add(gmap);
-
-            // Создаем наложение для сетки
-            gridOverlay = new GMapOverlay("grid");
-            gmap.Overlays.Add(gridOverlay);
-
-            // Генерация сетки
-            GenerateGrid();
-        }
-
-        private void GenerateGrid()
-        {
-            double step = 1.0; // Размер клетки в градусах
-            for (double lat = -85.0; lat <= 85.0; lat += step)
+            // Поле для мощности установки
+            Label powerLabel = new Label
             {
-                for (double lng = -180.0; lng <= 180.0; lng += step)
-                {
-                    // Создаем квадратный сектор
-                    List<PointLatLng> points = new List<PointLatLng>
-                    {
-                        new PointLatLng(lat, lng),
-                        new PointLatLng(lat + step, lng),
-                        new PointLatLng(lat + step, lng + step),
-                        new PointLatLng(lat, lng + step),
-                    };
+                Text = "Мощность установки (Вт):",
+                Location = new Point(10, 60),
+                Width = 150
+            };
+            this.Controls.Add(powerLabel);
 
-                    GMapPolygon sector = new GMapPolygon(points, "sector")
-                    {
-                        Fill = new SolidBrush(Color.FromArgb(50, Color.Red)),
-                        Stroke = new Pen(Color.Red, 1)
-                    };
-                    gridOverlay.Polygons.Add(sector);
-                }
+            powerTextBox = new TextBox
+            {
+                Location = new Point(170, 60),
+                Width = 100
+            };
+            this.Controls.Add(powerTextBox);
+
+            // Кнопка для выполнения расчетов
+            calculateButton = new Button
+            {
+                Text = "Рассчитать",
+                Location = new Point(10, 100),
+                Width = 150
+            };
+            calculateButton.Click += CalculateButton_Click;
+            this.Controls.Add(calculateButton);
+
+            // Кнопка для открытия карты
+            mapButton = new Button
+            {
+                Text = "Открыть карту",
+                Location = new Point(170, 100),
+                Width = 150
+            };
+            mapButton.Click += OpenMapButton_Click;
+            this.Controls.Add(mapButton);
+        }
+
+        private void CalculateButton_Click(object sender, EventArgs e)
+        {
+            if (!double.TryParse(angleTextBox.Text, out double angle))
+            {
+                MessageBox.Show("Введите корректный угол установки.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            if (!double.TryParse(powerTextBox.Text, out double power))
+            {
+                MessageBox.Show("Введите корректную мощность установки.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Примерные значения DNI и облачности
+            double[] dniValues = { 600, 650, 700, 750, 800, 850, 900 }; // Вт/м^2
+            double[] cloudinessValues = { 0.1, 0.2, 0.3, 0.1, 0.0, 0.1, 0.2 }; // Коэффициент облачности
+
+            SolarEnergyCalculator calculator = new SolarEnergyCalculator(new PointLatLng(0, 0), power, angle);
+            double[] weeklyEnergy = calculator.CalculateWeeklyEnergy(dniValues, cloudinessValues);
+
+            SaveToTextFile(weeklyEnergy);
         }
 
-        private void Gmap_MouseClick(object sender, MouseEventArgs e)
+        private void SaveToTextFile(double[] weeklyEnergy)
         {
-            if (e.Button == MouseButtons.Left)
+            string filePath = "energy_output.txt";
+
+            try
             {
-                // Получение координат клика
-                var point = gmap.FromLocalToLatLng(e.X, e.Y);
-
-                // Определение, попал ли клик в сектор
-                foreach (var polygon in gridOverlay.Polygons)
+                using (StreamWriter writer = new StreamWriter(filePath))
                 {
-                    if (polygon.IsInside(point))
-                    {
-                        // Изменение цвета сектора
-                        polygon.Fill = new SolidBrush(Color.FromArgb(150, Color.Red));
-                        gmap.Refresh();
+                    writer.WriteLine("Выработка электроэнергии по дням недели:");
+                    string[] days = { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" };
 
-                        // Добавление координат в список выбранных точек
-                        selectedPoints.Add(point);
-                        break;
+                    for (int i = 0; i < weeklyEnergy.Length; i++)
+                    {
+                        writer.WriteLine($"{days[i]}: {weeklyEnergy[i]:F2} кВтч");
                     }
                 }
+
+                MessageBox.Show($"Данные сохранены в файл: {Path.GetFullPath(filePath)}", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            else if (e.Button == MouseButtons.Right)
+            catch (Exception ex)
             {
-                // Вычисление средней точки
-                if (selectedPoints.Count > 0)
-                {
-                    double avgLat = 0;
-                    double avgLng = 0;
-
-                    foreach (var p in selectedPoints)
-                    {
-                        avgLat += p.Lat;
-                        avgLng += p.Lng;
-                    }
-
-                    avgLat /= selectedPoints.Count;
-                    avgLng /= selectedPoints.Count;
-
-                    MessageBox.Show($"Средняя точка: Широта {avgLat}, Долгота {avgLng}");
-                }
+                MessageBox.Show($"Ошибка при сохранении данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+
+        private void OpenMapButton_Click(object sender, EventArgs e)
+        {
+            MapForm mapForm = new MapForm();
+            mapForm.Show();
         }
     }
 }
