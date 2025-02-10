@@ -2,129 +2,115 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using GMap.NET;
-using LiveCharts;
-using LiveCharts.WinForms;
-using LiveCharts.Wpf;
-/*
- требуемая мощьность, текущая мощность вычесляеться как кол-во понелей умноженное на их мощность(мощность может быть разная); 2 угла по вертикали\горизонталь;
-сделать UI чтобы выбрать статичную или поворотную установку или обе сразу, у установки поворотной можно забить допустимый диапозон поворота, потребление электроэнергии(на 1 град по верт\горизонт)
-на вывод графики (сутки, неделя, месяц, год, 3-5-10 лет) прогноз год, 3года точки отсчета по дня, 5-10 лет по месяцам точки отсчета;
-вывод рекомендации, что будет использовать эффективнее поворотную, либо добавить статичные модели, срок окупаемости;
-добавить в установку стоимость конструкции;
-*/
-/* UI, стека, парсинг погоды*/
+using Newtonsoft.Json.Linq;
+
 namespace SolarPowerCalculator
 {
     public class MainForm : Form
     {
-        private TextBox angleTextBox;
-        private TextBox powerTextBox;
-        private Button calculateButton;
-        private Button mapButton;
+        private List<Panel> solarPanels = new List<Panel>(); // Список добавленных солнечных панелей
+        private FlowLayoutPanel panelContainer; // Контейнер для отображения панелей
+        private Button addPanelButton; // Кнопка для добавления новой панели
+        private Button mapButton; // Кнопка для открытия карты
+        private Button parseWeatherButton; // Кнопка для парсинга прогноза погоды
+        private PointLatLng? selectedAveragePoint; // Сохранённая средняя координата выбранных секторов
 
         public MainForm()
         {
-            // Настройка формы
             this.Text = "Solar Power Calculator";
-            this.Size = new Size(400, 200);
+            this.Size = new Size(650, 400);
 
-            // Поле для угла поворота
-            Label angleLabel = new Label
+            panelContainer = new FlowLayoutPanel
             {
-                Text = "Угол установки (град):",
-                Location = new Point(10, 20),
-                Width = 150
+                Location = new Point(10, 10),
+                Size = new Size(580, 300),
+                AutoScroll = true,
+                BorderStyle = BorderStyle.FixedSingle
             };
-            this.Controls.Add(angleLabel);
+            this.Controls.Add(panelContainer);
 
-            angleTextBox = new TextBox
+            addPanelButton = new Button
             {
-                Location = new Point(170, 20),
-                Width = 100
+                Text = "Добавить солнечную панель",
+                Location = new Point(10, 320),
+                Width = 200
             };
-            this.Controls.Add(angleTextBox);
+            addPanelButton.Click += AddPanelButton_Click;
+            this.Controls.Add(addPanelButton);
 
-            // Поле для мощности установки
-            Label powerLabel = new Label
-            {
-                Text = "Мощность установки (Вт):",
-                Location = new Point(10, 60),
-                Width = 150
-            };
-            this.Controls.Add(powerLabel);
-
-            powerTextBox = new TextBox
-            {
-                Location = new Point(170, 60),
-                Width = 100
-            };
-            this.Controls.Add(powerTextBox);
-
-            // Кнопка для выполнения расчетов
-            calculateButton = new Button
-            {
-                Text = "Рассчитать",
-                Location = new Point(10, 100),
-                Width = 150
-            };
-            calculateButton.Click += CalculateButton_Click;
-            this.Controls.Add(calculateButton);
-
-            // Кнопка для открытия карты
             mapButton = new Button
             {
                 Text = "Открыть карту",
-                Location = new Point(170, 100),
-                Width = 150
+                Location = new Point(220, 320),
+                Width = 200
             };
             mapButton.Click += OpenMapButton_Click;
             this.Controls.Add(mapButton);
+
+            parseWeatherButton = new Button
+            {
+                Text = "Сохранить прогноз погоды",
+                Location = new Point(430, 320),
+                Width = 200,
+                Enabled = false
+            };
+            parseWeatherButton.Click += ParseWeatherButton_Click;
+            this.Controls.Add(parseWeatherButton);
         }
 
-        private void CalculateButton_Click(object sender, EventArgs e)
+        private void AddPanelButton_Click(object sender, EventArgs e)
         {
-            if (!double.TryParse(angleTextBox.Text, out double angle))
+            using (var dialog = new SolarPanelDialog())
             {
-                MessageBox.Show("Введите корректный угол установки.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    var panel = dialog.CreatedPanel;
+                    solarPanels.Add(panel);
+                    panelContainer.Controls.Add(panel);
+                }
+            }
+        }
+
+        private void OpenMapButton_Click(object sender, EventArgs e)
+        {
+            var mapForm = new MapForm();
+            mapForm.AverageCoordinatesSelected += OnAverageCoordinatesSelected;
+            mapForm.ShowDialog();
+        }
+
+        private void OnAverageCoordinatesSelected(PointLatLng averagePoint)
+        {
+            selectedAveragePoint = averagePoint;
+            parseWeatherButton.Enabled = true;
+            MessageBox.Show($"Средние координаты: Широта {averagePoint.Lat}, Долгота {averagePoint.Lng}", "Координаты выбраны");
+        }
+
+        private async void ParseWeatherButton_Click(object sender, EventArgs e)
+        {
+            if (selectedAveragePoint == null)
+            {
+                MessageBox.Show("Сначала выберите координаты на карте.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (!double.TryParse(powerTextBox.Text, out double power))
-            {
-                MessageBox.Show("Введите корректную мощность установки.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            // Примерные значения DNI и облачности
-            double[] dniValues = { 600, 650, 700, 750, 800, 850, 900 }; // Вт/м^2
-            double[] cloudinessValues = { 0.1, 0.2, 0.3, 0.1, 0.0, 0.1, 0.2 }; // Коэффициент облачности
-
-            SolarEnergyCalculator calculator = new SolarEnergyCalculator(new PointLatLng(0, 0), power, angle);
-            double[] weeklyEnergy = calculator.CalculateWeeklyEnergy(dniValues, cloudinessValues);
-
-            SaveToTextFile(weeklyEnergy);
-        }
-
-        private void SaveToTextFile(double[] weeklyEnergy)
-        {
-            string filePath = "energy_output.txt";
+            string filePath = "weather_forecast.txt";
 
             try
             {
                 using (StreamWriter writer = new StreamWriter(filePath))
                 {
-                    writer.WriteLine("Выработка электроэнергии по дням недели:");
-                    string[] days = { "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс" };
+                    writer.WriteLine("Прогноз погоды для выбранных координат:");
+                    writer.WriteLine($"Координаты: Широта {selectedAveragePoint.Value.Lat}, Долгота {selectedAveragePoint.Value.Lng}");
 
-                    for (int i = 0; i < weeklyEnergy.Length; i++)
-                    {
-                        writer.WriteLine($"{days[i]}: {weeklyEnergy[i]:F2} кВтч");
-                    }
+                    string forecast = await GetWeatherForecastAsync(selectedAveragePoint.Value.Lat, selectedAveragePoint.Value.Lng);
+                    writer.WriteLine(forecast);
+
+                    MessageBox.Show($"Прогноз погоды успешно сохранён в файл: {Path.GetFullPath(filePath)}", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-
-                MessageBox.Show($"Данные сохранены в файл: {Path.GetFullPath(filePath)}", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -132,11 +118,39 @@ namespace SolarPowerCalculator
             }
         }
 
-
-        private void OpenMapButton_Click(object sender, EventArgs e)
+        private async Task<string> GetWeatherForecastAsync(double latitude, double longitude)
         {
-            MapForm mapForm = new MapForm();
-            mapForm.Show();
+            string apiKey = "917617f28fc2c155c406a5abcf99ec92";
+            string url = $"https://api.openweathermap.org/data/2.5/forecast?lat={latitude}&lon={longitude}&units=metric&appid={apiKey}";
+
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    HttpResponseMessage response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = await response.Content.ReadAsStringAsync();
+
+                    JObject json = JObject.Parse(responseBody);
+                    string forecast = "";
+                    foreach (var item in json["list"])
+                    {
+                        string date = item["dt_txt"].ToString();
+                        string temp = item["main"]["temp"].ToString();
+                        string humidity = item["main"]["humidity"].ToString();
+                        string windSpeed = item["wind"]["speed"].ToString();
+                        string cloudiness = item["clouds"]["all"].ToString();
+
+                        forecast += $"Дата: {date}\nТемпература: {temp}°C\nВлажность: {humidity}%\nВетер: {windSpeed} м/с\nОблачность: {cloudiness}%\n\n";
+                    }
+
+                    return forecast;
+                }
+                catch (Exception ex)
+                {
+                    return $"Ошибка получения данных: {ex.Message}";
+                }
+            }
         }
     }
 }
