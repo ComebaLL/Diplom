@@ -1,13 +1,16 @@
-using System;
+п»їusing System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using GMap.NET;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
 using GMap.NET.MapProviders;
+using Newtonsoft.Json.Linq;
 
 namespace SolarPowerCalculator
 {
@@ -17,157 +20,236 @@ namespace SolarPowerCalculator
         private GMapOverlay gridOverlay;
         private List<PointLatLng> selectedPoints = new List<PointLatLng>();
         private List<GMapPolygon> selectedSectors = new List<GMapPolygon>();
-        private PointLatLng? _savedAveragePoint; // Переменная для хранения средней координаты
+        private PointLatLng? _savedAveragePoint;
+        private const string PVGIS_API_URL = "https://re.jrc.ec.europa.eu/api/v5_2/timeseries";
+        private static readonly HttpClient client = new HttpClient();
+        private const double Step = 0.1;
 
-        public event Action<PointLatLng> AverageCoordinatesSelected; // Событие для передачи координат
+        public event Action<PointLatLng> AverageCoordinatesSelected;
 
         public MapForm()
         {
-            // Отключение локального кеша для избежания блокировок
             GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerOnly;
-
-            this.Text = "Выбор сектора на карте";
-            this.Size = new Size(800, 600);
+            Text = "Р’С‹Р±РѕСЂ СЃРµРєС‚РѕСЂР° РЅР° РєР°СЂС‚Рµ";
+            Size = new Size(800, 600);
 
             gmap = new GMapControl
             {
                 Dock = DockStyle.Fill,
                 MapProvider = GMapProviders.GoogleMap,
-                Position = new PointLatLng(55.7558, 37.6173),
+                Position = new PointLatLng(52.0317, 113.501),
                 MinZoom = 2,
                 MaxZoom = 18,
                 Zoom = 5
             };
             gmap.MouseClick += Gmap_MouseClick;
-            this.Controls.Add(gmap);
+            Controls.Add(gmap);
 
             gridOverlay = new GMapOverlay("grid");
             gmap.Overlays.Add(gridOverlay);
-
-            GenerateGrid();
+            Task.Run(GenerateGridAsync);
         }
+        private const string GridCacheFile = "grid_cache.dat"; // Р¤Р°Р№Р» РєРµС€Р° СЃРµС‚РєРё
 
-        private void GenerateGrid()
+        private async Task GenerateGridAsync()
         {
-            double step = 1.0; // Размер клетки в градусах
-            for (double lat = -85.0; lat <= 85.0; lat += step)
+            // Р•СЃР»Рё РµСЃС‚СЊ РєРµС€, Р·Р°РіСЂСѓР¶Р°РµРј СЃРµС‚РєСѓ РёР· С„Р°Р№Р»Р°
+            if (File.Exists(GridCacheFile))
             {
-                for (double lng = -180.0; lng <= 180.0; lng += step)
-                {
-                    List<PointLatLng> points = new List<PointLatLng>
-                    {
-                        new PointLatLng(lat, lng),
-                        new PointLatLng(lat + step, lng),
-                        new PointLatLng(lat + step, lng + step),
-                        new PointLatLng(lat, lng + step),
-                    };
+                Console.WriteLine("Р¤Р°Р№Р» РєРµС€Р° РЅР°Р№РґРµРЅ, Р·Р°РіСЂСѓР¶Р°РµРј СЃРµС‚РєСѓ...");
+                LoadGridFromFile();
+                return;
+            }
 
-                    GMapPolygon sector = new GMapPolygon(points, "sector")
+            Console.WriteLine("Р¤Р°Р№Р» РєРµС€Р° РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚, РіРµРЅРµСЂРёСЂСѓРµРј СЃРµС‚РєСѓ...");
+
+            List<GMapPolygon> polygons = new List<GMapPolygon>();
+
+            for (double lat = -85.0; lat <= 85.0; lat += Step)
+            {
+                for (double lng = -180.0; lng <= 180.0; lng += Step)
+                {
+                    var points = new List<PointLatLng>
+            {
+                new PointLatLng(lat, lng),
+                new PointLatLng(lat + Step, lng),
+                new PointLatLng(lat + Step, lng + Step),
+                new PointLatLng(lat, lng + Step),
+            };
+
+                    var polygon = new GMapPolygon(points, "sector")
                     {
                         Fill = new SolidBrush(Color.FromArgb(50, Color.Red)),
                         Stroke = new Pen(Color.Red, 1)
                     };
-                    gridOverlay.Polygons.Add(sector);
+
+                    polygons.Add(polygon);
                 }
+            }
+
+            // рџ”№ Р”РѕР±Р°РІР»СЏРµРј РїРѕР»РёРіРѕРЅС‹ РІ UI РїРѕСЂС†РёСЏРјРё
+            Invoke(new Action(() =>
+            {
+                foreach (var polygon in polygons)
+                {
+                    gridOverlay.Polygons.Add(polygon);
+                }
+                gmap.Refresh();
+            }));
+
+            // рџ”№ РЎРѕС…СЂР°РЅСЏРµРј СЃРµС‚РєСѓ РІ С„Р°Р№Р» РїРѕСЃР»Рµ РїРµСЂРІРѕР№ РіРµРЅРµСЂР°С†РёРё
+            SaveGridToFile(polygons);
+        }
+
+        // рџ”№ **РњРµС‚РѕРґ СЃРѕС…СЂР°РЅРµРЅРёСЏ СЃРµС‚РєРё РІ С„Р°Р№Р»**
+        private void SaveGridToFile(List<GMapPolygon> polygons)
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(GridCacheFile, false))
+                {
+                    foreach (var polygon in polygons)
+                    {
+                        writer.WriteLine($"{string.Join(";", polygon.Points.Select(p => $"{p.Lat},{p.Lng}"))}");
+                    }
+                }
+                Console.WriteLine("РЎРµС‚РєР° СЃРѕС…СЂР°РЅРµРЅР° РІ С„Р°Р№Р».");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ СЃРµС‚РєРё: {ex.Message}");
+            }
+        }
+
+        // рџ”№ **РњРµС‚РѕРґ Р·Р°РіСЂСѓР·РєРё СЃРµС‚РєРё РёР· С„Р°Р№Р»Р°**
+        private void LoadGridFromFile()
+        {
+            try
+            {
+                if (!File.Exists(GridCacheFile))
+                {
+                    Console.WriteLine("Р¤Р°Р№Р» СЃРµС‚РєРё РЅРµ РЅР°Р№РґРµРЅ, РіРµРЅРµСЂР°С†РёСЏ...");
+                    Task.Run(GenerateGridAsync);
+                    return;
+                }
+
+                List<GMapPolygon> polygons = new List<GMapPolygon>();
+
+                foreach (var line in File.ReadLines(GridCacheFile))
+                {
+                    var points = line.Split(';')
+                        .Select(p => p.Split(','))
+                        .Select(coords => new PointLatLng(double.Parse(coords[0]), double.Parse(coords[1])))
+                        .ToList();
+
+                    var polygon = new GMapPolygon(points, "sector")
+                    {
+                        Fill = new SolidBrush(Color.FromArgb(50, Color.Red)),
+                        Stroke = new Pen(Color.Red, 1)
+                    };
+                    polygons.Add(polygon);
+                }
+
+                // рџ”№ Р”РѕР±Р°РІР»СЏРµРј Р·Р°РіСЂСѓР¶РµРЅРЅС‹Рµ РїРѕР»РёРіРѕРЅС‹ РІ UI
+                Invoke(new Action(() =>
+                {
+                    gridOverlay.Polygons.Clear();
+                    foreach (var polygon in polygons)
+                    {
+                        gridOverlay.Polygons.Add(polygon);
+                    }
+                    gmap.Refresh();
+                }));
+
+                Console.WriteLine("РЎРµС‚РєР° Р·Р°РіСЂСѓР¶РµРЅР° РёР· С„Р°Р№Р»Р°.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё СЃРµС‚РєРё: {ex.Message}");
+                Task.Run(GenerateGridAsync);
             }
         }
 
         private void Gmap_MouseClick(object sender, MouseEventArgs e)
         {
+            var point = gmap.FromLocalToLatLng(e.X, e.Y);
             if (e.Button == MouseButtons.Left)
             {
-                var point = gmap.FromLocalToLatLng(e.X, e.Y);
-
-                foreach (var polygon in gridOverlay.Polygons)
-                {
-                    if (polygon.IsInside(point))
-                    {
-                        if (selectedSectors.Contains(polygon))
-                        {
-                            selectedSectors.Remove(polygon);
-                            polygon.Fill = new SolidBrush(Color.FromArgb(50, Color.Red));
-                        }
-                        else
-                        {
-                            selectedSectors.Add(polygon);
-                            polygon.Fill = new SolidBrush(Color.FromArgb(150, Color.Red));
-                        }
-                        gmap.Refresh();
-                        break;
-                    }
-                }
+                ToggleSectorSelection(point);
             }
-            else if (e.Button == MouseButtons.Right)
+            else if (e.Button == MouseButtons.Right && selectedSectors.Count > 0)
             {
-                if (selectedSectors.Count > 0)
-                {
-                    selectedPoints.Clear();
-                    foreach (var sector in selectedSectors)
-                    {
-                        var center = GetPolygonCenter(sector);
-                        selectedPoints.Add(center);
-                    }
-
-                    var averagePoint = CalculateAverageCoordinates();
-                    _savedAveragePoint = averagePoint; // Сохраняем в переменную
-
-                    SaveCoordinatesToFile(averagePoint); // Сохраняем в файл
-                    MessageBox.Show($"Средние координаты сохранены:\nШирота: {averagePoint.Lat}\nДолгота: {averagePoint.Lng}", "Информация");
-
-                    AverageCoordinatesSelected?.Invoke(averagePoint); // Передаём координаты в `MainForm`
-                    this.Close();
-                }
+                SaveAverageCoordinates();
             }
         }
 
-        private PointLatLng GetPolygonCenter(GMapPolygon polygon)
+        private void ToggleSectorSelection(PointLatLng point)
         {
-            double latSum = 0;
-            double lngSum = 0;
-            int pointCount = polygon.Points.Count;
-
-            foreach (var point in polygon.Points)
+            foreach (var polygon in gridOverlay.Polygons)
             {
-                latSum += point.Lat;
-                lngSum += point.Lng;
+                if (!polygon.IsInside(point)) continue;
+                if (selectedSectors.Contains(polygon))
+                {
+                    selectedSectors.Remove(polygon);
+                    polygon.Fill = new SolidBrush(Color.FromArgb(50, Color.Red));
+                }
+                else
+                {
+                    selectedSectors.Add(polygon);
+                    polygon.Fill = new SolidBrush(Color.FromArgb(150, Color.Red));
+                }
+                gmap.Refresh();
+                break;
             }
+        }
 
-            double latCenter = latSum / pointCount;
-            double lngCenter = lngSum / pointCount;
+        private void SaveAverageCoordinates()
+        {
+            selectedPoints.Clear();
+            selectedPoints.AddRange(selectedSectors.Select(GetPolygonCenter));
+            var averagePoint = CalculateAverageCoordinates();
+            _savedAveragePoint = averagePoint;
+            SaveCoordinatesToFile(averagePoint);
+            FetchAndSaveWeatherData(averagePoint);
+            MessageBox.Show($"РЎСЂРµРґРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ СЃРѕС…СЂР°РЅРµРЅС‹:\nРЁРёСЂРѕС‚Р°: {averagePoint.Lat}\nР”РѕР»РіРѕС‚Р°: {averagePoint.Lng}", "РРЅС„РѕСЂРјР°С†РёСЏ");
+            AverageCoordinatesSelected?.Invoke(averagePoint);
+            Close();
+        }
 
+        private static PointLatLng GetPolygonCenter(GMapPolygon polygon)
+        {
+            var latCenter = polygon.Points.Average(p => p.Lat);
+            var lngCenter = polygon.Points.Average(p => p.Lng);
             return new PointLatLng(latCenter, lngCenter);
         }
 
         private PointLatLng CalculateAverageCoordinates()
         {
-            if (selectedPoints.Count == 0)
-                throw new InvalidOperationException("Секторы не выбраны.");
-
-            double averageLat = selectedPoints.Average(p => p.Lat);
-            double averageLng = selectedPoints.Average(p => p.Lng);
-
-            return new PointLatLng(averageLat, averageLng);
+            if (!selectedPoints.Any())
+                throw new InvalidOperationException("РЎРµРєС‚РѕСЂС‹ РЅРµ РІС‹Р±СЂР°РЅС‹.");
+            return new PointLatLng(selectedPoints.Average(p => p.Lat), selectedPoints.Average(p => p.Lng));
         }
 
-        /// <summary>
-        /// Метод для сохранения координат в файл.
-        /// </summary>
-        private void SaveCoordinatesToFile(PointLatLng coordinates)
+        private static void SaveCoordinatesToFile(PointLatLng coordinates)
         {
-            string filePath = "coordinates.txt";
+            const string filePath = "coordinates.txt";
+            File.WriteAllText(filePath, $"РЁРёСЂРѕС‚Р°: {coordinates.Lat}\nР”РѕР»РіРѕС‚Р°: {coordinates.Lng}");
+            Console.WriteLine($"РљРѕРѕСЂРґРёРЅР°С‚С‹ СЃРѕС…СЂР°РЅРµРЅС‹ РІ {filePath}");
+        }
 
+        private async void FetchAndSaveWeatherData(PointLatLng coordinates)
+        {
+            string requestUrl = $"{PVGIS_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&start={DateTime.UtcNow:yyyy-MM-dd}&end={DateTime.UtcNow.AddDays(7):yyyy-MM-dd}&outputformat=json&usehorizon=1&components=1";
+            const string filePath = "weather_weekly.txt";
             try
             {
-                using (StreamWriter writer = new StreamWriter(filePath))
-                {
-                    writer.WriteLine($"Широта: {coordinates.Lat}");
-                    writer.WriteLine($"Долгота: {coordinates.Lng}");
-                }
-                Console.WriteLine($"Координаты успешно сохранены в {filePath}");
+                string jsonResponse = await client.GetStringAsync(requestUrl);
+                File.WriteAllText(filePath, jsonResponse);
+                Console.WriteLine($"РџСЂРѕРіРЅРѕР· РїРѕРіРѕРґС‹ РЅР° РЅРµРґРµР»СЋ СЃРѕС…СЂР°РЅС‘РЅ РІ {filePath}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении координат: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"РћС€РёР±РєР° РїРѕР»СѓС‡РµРЅРёСЏ РїСЂРѕРіРЅРѕР·Р° РїРѕРіРѕРґС‹: {ex.Message}", "РћС€РёР±РєР°", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
