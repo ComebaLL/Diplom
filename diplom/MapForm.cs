@@ -21,9 +21,12 @@ namespace SolarPowerCalculator
         private List<PointLatLng> selectedPoints = new List<PointLatLng>();
         private List<GMapPolygon> selectedSectors = new List<GMapPolygon>();
         private PointLatLng? _savedAveragePoint;
-        private const string PVGIS_API_URL = "https://re.jrc.ec.europa.eu/api/v5_2/timeseries";
+        //private const string PVGIS_API_URL = "https://re.jrc.ec.europa.eu/api/v5_2/timeseries";
+        private const string OPENWEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast";
         private static readonly HttpClient client = new HttpClient();
-        private const double Step = 0.1;
+        private const double Step = 0.15;
+        private const string WeatherFilePath = "weather_weekly.txt";
+        private const string DNIFilePath = "dni_weekly.txt";
 
         public event Action<PointLatLng> AverageCoordinatesSelected;
 
@@ -38,9 +41,9 @@ namespace SolarPowerCalculator
                 Dock = DockStyle.Fill,
                 MapProvider = GMapProviders.GoogleMap,
                 Position = new PointLatLng(52.0317, 113.501),
-                MinZoom = 2,
+                MinZoom = 6,
                 MaxZoom = 18,
-                Zoom = 5
+                Zoom = 7
             };
             gmap.MouseClick += Gmap_MouseClick;
             Controls.Add(gmap);
@@ -49,45 +52,33 @@ namespace SolarPowerCalculator
             gmap.Overlays.Add(gridOverlay);
             Task.Run(GenerateGridAsync);
         }
-        private const string GridCacheFile = "grid_cache.dat"; // Файл кеша сетки
 
         private async Task GenerateGridAsync()
         {
-            // Если есть кеш, загружаем сетку из файла
-            if (File.Exists(GridCacheFile))
-            {
-                Console.WriteLine("Файл кеша найден, загружаем сетку...");
-                LoadGridFromFile();
-                return;
-            }
-
-            Console.WriteLine("Файл кеша отсутствует, генерируем сетку...");
-
+            Console.WriteLine("Генерация сетки Забайкальского края...");
             List<GMapPolygon> polygons = new List<GMapPolygon>();
 
-            for (double lat = -85.0; lat <= 85.0; lat += Step)
+            for (double lat = 49.0; lat <= 55.0; lat += Step)
             {
-                for (double lng = -180.0; lng <= 180.0; lng += Step)
+                for (double lng = 107.0; lng <= 120.0; lng += Step)
                 {
                     var points = new List<PointLatLng>
-            {
-                new PointLatLng(lat, lng),
-                new PointLatLng(lat + Step, lng),
-                new PointLatLng(lat + Step, lng + Step),
-                new PointLatLng(lat, lng + Step),
-            };
+                    {
+                        new PointLatLng(lat, lng),
+                        new PointLatLng(lat + Step, lng),
+                        new PointLatLng(lat + Step, lng + Step),
+                        new PointLatLng(lat, lng + Step),
+                    };
 
                     var polygon = new GMapPolygon(points, "sector")
                     {
                         Fill = new SolidBrush(Color.FromArgb(50, Color.Red)),
                         Stroke = new Pen(Color.Red, 1)
                     };
-
                     polygons.Add(polygon);
                 }
             }
 
-            // 🔹 Добавляем полигоны в UI порциями
             Invoke(new Action(() =>
             {
                 foreach (var polygon in polygons)
@@ -96,78 +87,6 @@ namespace SolarPowerCalculator
                 }
                 gmap.Refresh();
             }));
-
-            // 🔹 Сохраняем сетку в файл после первой генерации
-            SaveGridToFile(polygons);
-        }
-
-        // 🔹 **Метод сохранения сетки в файл**
-        private void SaveGridToFile(List<GMapPolygon> polygons)
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(GridCacheFile, false))
-                {
-                    foreach (var polygon in polygons)
-                    {
-                        writer.WriteLine($"{string.Join(";", polygon.Points.Select(p => $"{p.Lat},{p.Lng}"))}");
-                    }
-                }
-                Console.WriteLine("Сетка сохранена в файл.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка сохранения сетки: {ex.Message}");
-            }
-        }
-
-        // 🔹 **Метод загрузки сетки из файла**
-        private void LoadGridFromFile()
-        {
-            try
-            {
-                if (!File.Exists(GridCacheFile))
-                {
-                    Console.WriteLine("Файл сетки не найден, генерация...");
-                    Task.Run(GenerateGridAsync);
-                    return;
-                }
-
-                List<GMapPolygon> polygons = new List<GMapPolygon>();
-
-                foreach (var line in File.ReadLines(GridCacheFile))
-                {
-                    var points = line.Split(';')
-                        .Select(p => p.Split(','))
-                        .Select(coords => new PointLatLng(double.Parse(coords[0]), double.Parse(coords[1])))
-                        .ToList();
-
-                    var polygon = new GMapPolygon(points, "sector")
-                    {
-                        Fill = new SolidBrush(Color.FromArgb(50, Color.Red)),
-                        Stroke = new Pen(Color.Red, 1)
-                    };
-                    polygons.Add(polygon);
-                }
-
-                // 🔹 Добавляем загруженные полигоны в UI
-                Invoke(new Action(() =>
-                {
-                    gridOverlay.Polygons.Clear();
-                    foreach (var polygon in polygons)
-                    {
-                        gridOverlay.Polygons.Add(polygon);
-                    }
-                    gmap.Refresh();
-                }));
-
-                Console.WriteLine("Сетка загружена из файла.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка загрузки сетки: {ex.Message}");
-                Task.Run(GenerateGridAsync);
-            }
         }
 
         private void Gmap_MouseClick(object sender, MouseEventArgs e)
@@ -211,6 +130,7 @@ namespace SolarPowerCalculator
             _savedAveragePoint = averagePoint;
             SaveCoordinatesToFile(averagePoint);
             FetchAndSaveWeatherData(averagePoint);
+            FetchAndSaveDNI(averagePoint);
             MessageBox.Show($"Средние координаты сохранены:\nШирота: {averagePoint.Lat}\nДолгота: {averagePoint.Lng}", "Информация");
             AverageCoordinatesSelected?.Invoke(averagePoint);
             Close();
@@ -239,11 +159,12 @@ namespace SolarPowerCalculator
 
         private async void FetchAndSaveWeatherData(PointLatLng coordinates)
         {
-            string requestUrl = $"{PVGIS_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&start={DateTime.UtcNow:yyyy-MM-dd}&end={DateTime.UtcNow.AddDays(7):yyyy-MM-dd}&outputformat=json&usehorizon=1&components=1";
+            string weatherUrl = $"{OPENWEATHER_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&units=metric&appid=917617f28fc2c155c406a5abcf99ec92";
+            //string dniUrl = $"{PVGIS_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&start={DateTime.UtcNow:yyyy-MM-dd}&end={DateTime.UtcNow.AddDays(7):yyyy-MM-dd}&outputformat=json&usehorizon=1&components=1";
             const string filePath = "weather_weekly.txt";
             try
             {
-                string jsonResponse = await client.GetStringAsync(requestUrl);
+                string jsonResponse = await client.GetStringAsync(weatherUrl);
                 File.WriteAllText(filePath, jsonResponse);
                 Console.WriteLine($"Прогноз погоды на неделю сохранён в {filePath}");
             }
@@ -252,5 +173,39 @@ namespace SolarPowerCalculator
                 MessageBox.Show($"Ошибка получения прогноза погоды: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private async void FetchAndSaveDNI(PointLatLng coordinates)
+        {
+            string apiKey = "EmfUA53avO9LeohQPtarH01Ep2cuLlHedUQzeaut";
+            string year = "2020"; // Берем исторические данные за 2020 год
+            DateTime today = DateTime.UtcNow;
+            DateTime weekLater = today.AddDays(6); // Берем прогноз на 7 дней
+
+            string dniUrl = $"https://developer.nrel.gov/api/nsrdb/v2/solar/himawari-download.csv?" +
+                            $"names={year}&wkt=POINT({coordinates.Lng}+{coordinates.Lat})&interval=60" +
+                            $"&api_key={apiKey}&email=gumball20045@gmail.com";
+
+            try
+            {
+                string csvResponse = await client.GetStringAsync(dniUrl);
+
+                // Сохраняем в файл
+                string filePath = "dni_weekly.txt";
+                using (StreamWriter writer = new StreamWriter(filePath, false))
+                {
+                    writer.WriteLine($"DNI данные за неделю ({year}) для координат: {coordinates.Lat}, {coordinates.Lng}");
+                    writer.Write(csvResponse);
+                }
+
+                Console.WriteLine($"DNI данные за неделю сохранены в {filePath}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка получения DNI данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+
     }
 }
