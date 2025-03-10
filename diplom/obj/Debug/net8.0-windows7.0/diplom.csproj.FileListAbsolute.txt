@@ -79,3 +79,5 @@ C:\Users\gumba\Documents\GitHub\Diplom\diplom\obj\Debug\net8.0-windows7.0\refint
 C:\Users\gumba\Documents\GitHub\Diplom\diplom\obj\Debug\net8.0-windows7.0\diplom.pdb
 C:\Users\gumba\Documents\GitHub\Diplom\diplom\obj\Debug\net8.0-windows7.0\diplom.genruntimeconfig.cache
 C:\Users\gumba\Documents\GitHub\Diplom\diplom\obj\Debug\net8.0-windows7.0\ref\diplom.dll
+C:\Users\gumba\Documents\GitHub\Diplom\diplom\obj\Debug\net8.0-windows7.0\SolarPowerCalculator.MapForm.resources
+C:\Users\gumba\Documents\GitHub\Diplom\diplom\obj\Debug\net8.0-windows7.0\SolarPanelDialog.resources

@@ -1,150 +1,106 @@
-namespace SolarPowerCalculator
+п»їusing System;
+using System.Drawing;
+using System.Windows.Forms;
+
+public class SolarPanelDialog : Form
 {
-    public class SolarPanelDialog : Form
+    private RadioButton staticOption, dynamicOption;
+    private TextBox powerTextBox, angleVertTextBox, angleHorTextBox;
+    private Label powerLabel, angleVertLabel, angleHorLabel;
+    private Button confirmButton;
+    public SolarPanel CreatedPanel { get; private set; }
+
+    public SolarPanelDialog(SolarPanel panel = null)
     {
-        private RadioButton staticOption;
-        private RadioButton dynamicOption;
-        private TextBox powerTextBox;
-        private TextBox angleTextBox1;
-        private TextBox angleTextBox2;
-        private Button confirmButton;
-        public Panel CreatedPanel { get; private set; }
+        Text = "Р”РѕР±Р°РІРёС‚СЊ СЃРѕР»РЅРµС‡РЅСѓСЋ РїР°РЅРµР»СЊ";
+        Size = new Size(300, 250);
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        MaximizeBox = false;
+        MinimizeBox = false;
 
-        public SolarPanelDialog()
+        // рџ”№ Р’С‹Р±РѕСЂ С‚РёРїР° РїР°РЅРµР»Рё
+        staticOption = new RadioButton { Text = "РЎС‚Р°С‚РёС‡РµСЃРєР°СЏ", Location = new Point(10, 10), Checked = panel?.Type == "РЎС‚Р°С‚РёС‡РµСЃРєР°СЏ" };
+        dynamicOption = new RadioButton { Text = "Р”РёРЅР°РјРёС‡РµСЃРєР°СЏ", Location = new Point(10, 40), Checked = panel?.Type == "Р”РёРЅР°РјРёС‡РµСЃРєР°СЏ" };
+
+        staticOption.CheckedChanged += ToggleAngleFields;
+        dynamicOption.CheckedChanged += ToggleAngleFields;
+
+        // рџ”№ РџРѕР»СЏ РґР»СЏ РІРІРѕРґР° Р·РЅР°С‡РµРЅРёР№
+        powerLabel = new Label { Text = "РњРѕС‰РЅРѕСЃС‚СЊ (Р’С‚):", Location = new Point(10, 70) };
+        powerTextBox = new TextBox { Location = new Point(120, 70), Width = 100, Text = panel?.Power.ToString() ?? "" };
+
+        angleVertLabel = new Label { Text = "РЈРіРѕР» (РІРµСЂС‚РёРє.)", Location = new Point(10, 100), Visible = staticOption.Checked };
+        angleVertTextBox = new TextBox { Location = new Point(120, 100), Width = 100, Visible = staticOption.Checked, Text = panel?.AngleVertical?.ToString() ?? "" };
+
+        angleHorLabel = new Label { Text = "РЈРіРѕР» (РіРѕСЂРёР·РѕРЅС‚.)", Location = new Point(10, 130), Visible = staticOption.Checked };
+        angleHorTextBox = new TextBox { Location = new Point(120, 130), Width = 100, Visible = staticOption.Checked, Text = panel?.AngleHorizontal?.ToString() ?? "" };
+
+        // рџ”№ РљРЅРѕРїРєР° РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ
+        confirmButton = new Button { Text = "Р”РѕР±Р°РІРёС‚СЊ", Location = new Point(10, 170), Width = 200 };
+        confirmButton.Click += ConfirmButton_Click;
+
+        Controls.AddRange(new Control[] {
+            staticOption, dynamicOption,
+            powerLabel, powerTextBox,
+            angleVertLabel, angleVertTextBox,
+            angleHorLabel, angleHorTextBox,
+            confirmButton
+        });
+
+        // Р•СЃР»Рё РїРµСЂРµРґР°РЅР° СЃСѓС‰РµСЃС‚РІСѓСЋС‰Р°СЏ РїР°РЅРµР»СЊ вЂ” РѕР±РЅРѕРІР»СЏРµРј РїРѕР»СЏ
+        if (panel != null)
         {
-            this.Text = "Добавление солнечной панели";
-            this.Size = new Size(300, 300);
+            ToggleAngleFields(null, null);
+        }
+    }
 
-            // Выбор типа панели
-            staticOption = new RadioButton
-            {
-                Text = "Статичная",
-                Location = new Point(10, 10),
-                Checked = true
-            };
-            this.Controls.Add(staticOption);
+    /// <summary>
+    /// рџ”№ РћС‚РѕР±СЂР°Р¶РµРЅРёРµ РїРѕР»РµР№ РґР»СЏ СѓРіР»РѕРІ РїСЂРё РІС‹Р±РѕСЂРµ СЃС‚Р°С‚РёС‡РµСЃРєРѕР№ РїР°РЅРµР»Рё
+    /// </summary>
+    private void ToggleAngleFields(object sender, EventArgs e)
+    {
+        bool isStatic = staticOption.Checked;
+        angleVertLabel.Visible = angleVertTextBox.Visible = isStatic;
+        angleHorLabel.Visible = angleHorTextBox.Visible = isStatic;
+    }
 
-            dynamicOption = new RadioButton
-            {
-                Text = "Динамичная",
-                Location = new Point(10, 40)
-            };
-            this.Controls.Add(dynamicOption);
-
-            // Поле для мощности
-            Label powerLabel = new Label
-            {
-                Text = "Мощность (Вт):",
-                Location = new Point(10, 80),
-                Width = 100
-            };
-            this.Controls.Add(powerLabel);
-
-            powerTextBox = new TextBox
-            {
-                Location = new Point(120, 80),
-                Width = 100
-            };
-            this.Controls.Add(powerTextBox);
-
-            // Поля для углов
-            Label angleLabel1 = new Label
-            {
-                Text = "Угол 1 (град):",
-                Location = new Point(10, 120),
-                Width = 100
-            };
-            this.Controls.Add(angleLabel1);
-
-            angleTextBox1 = new TextBox
-            {
-                Location = new Point(120, 120),
-                Width = 100
-            };
-            this.Controls.Add(angleTextBox1);
-
-            Label angleLabel2 = new Label
-            {
-                Text = "Угол 2 (град):",
-                Location = new Point(10, 160),
-                Width = 100,
-                Visible = false
-            };
-            this.Controls.Add(angleLabel2);
-
-            angleTextBox2 = new TextBox
-            {
-                Location = new Point(120, 160),
-                Width = 100,
-                Visible = false
-            };
-            this.Controls.Add(angleTextBox2);
-
-            // Событие переключения типа панели
-            dynamicOption.CheckedChanged += (s, e) =>
-            {
-                angleLabel2.Visible = angleTextBox2.Visible = dynamicOption.Checked;
-            };
-
-            // Кнопка подтверждения
-            confirmButton = new Button
-            {
-                Text = "Добавить",
-                Location = new Point(10, 200),
-                Width = 100
-            };
-            confirmButton.Click += ConfirmButton_Click;
-            this.Controls.Add(confirmButton);
+    /// <summary>
+    /// рџ”№ РћР±СЂР°Р±РѕС‚С‡РёРє РЅР°Р¶Р°С‚РёСЏ РЅР° РєРЅРѕРїРєСѓ "Р”РѕР±Р°РІРёС‚СЊ"
+    /// </summary>
+    private void ConfirmButton_Click(object sender, EventArgs e)
+    {
+        if (!double.TryParse(powerTextBox.Text, out double power) || power <= 0)
+        {
+            MessageBox.Show("Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅСѓСЋ РјРѕС‰РЅРѕСЃС‚СЊ.", "РћС€РёР±РєР°", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
         }
 
-        private void ConfirmButton_Click(object sender, EventArgs e)
+        double? angleVert = null, angleHor = null;
+
+        if (staticOption.Checked)
         {
-            if (!double.TryParse(powerTextBox.Text, out double power) || power <= 0)
+            if (!double.TryParse(angleVertTextBox.Text, out double angleV) || angleV < 0 || angleV > 90)
             {
-                MessageBox.Show("Введите корректную мощность.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅС‹Р№ РІРµСЂС‚РёРєР°Р»СЊРЅС‹Р№ СѓРіРѕР» (0-90В°).", "РћС€РёР±РєР°", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
-            if (!double.TryParse(angleTextBox1.Text, out double angle1) || angle1 < 0 || angle1 > 90)
+            if (!double.TryParse(angleHorTextBox.Text, out double angleH) || angleH < 0 || angleH > 90)
             {
-                MessageBox.Show("Введите корректный угол 1.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Р’РІРµРґРёС‚Рµ РєРѕСЂСЂРµРєС‚РЅС‹Р№ РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅС‹Р№ СѓРіРѕР» (0-90В°).", "РћС€РёР±РєР°", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
-            double? angle2 = null;
-            if (dynamicOption.Checked)
-            {
-                if (!double.TryParse(angleTextBox2.Text, out double angle2Value) || angle2Value < 0 || angle2Value > 90)
-                {
-                    MessageBox.Show("Введите корректный угол 2.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                angle2 = angle2Value;
-            }
-
-            // Создаём панель для отображения на главной форме
-            CreatedPanel = new Panel
-            {
-                Size = new Size(200, 50),
-                BorderStyle = BorderStyle.FixedSingle
-            };
-
-            string panelInfo = $"Мощность: {power} Вт, Угол 1: {angle1}°";
-            if (angle2.HasValue)
-            {
-                panelInfo += $", Угол 2: {angle2}°";
-            }
-
-            Label panelLabel = new Label
-            {
-                Text = panelInfo,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-
-            CreatedPanel.Controls.Add(panelLabel);
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            angleVert = angleV;
+            angleHor = angleH;
         }
+
+        CreatedPanel = new SolarPanel(
+            staticOption.Checked ? "РЎС‚Р°С‚РёС‡РµСЃРєР°СЏ" : "Р”РёРЅР°РјРёС‡РµСЃРєР°СЏ",
+            power,
+            angleVert,
+            angleHor
+        );
+
+        DialogResult = DialogResult.OK;
+        Close();
     }
 }

@@ -7,6 +7,9 @@
     <Compile Update="MapForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="PanelSelectionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="SolarPanelDialog.cs">
       <SubType>Form</SubType>
     </Compile>
