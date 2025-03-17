@@ -5,15 +5,15 @@ using System.Windows.Forms;
 public class SolarPanelDialog : Form
 {
     private RadioButton staticOption, dynamicOption;
-    private TextBox powerTextBox, angleVertTextBox, angleHorTextBox;
-    private Label powerLabel, angleVertLabel, angleHorLabel;
+    private TextBox powerTextBox, angleVertTextBox, angleHorTextBox, consumptionTextBox;
+    private Label powerLabel, angleVertLabel, angleHorLabel, consumptionLabel;
     private Button confirmButton;
     public SolarPanel CreatedPanel { get; private set; }
 
     public SolarPanelDialog(SolarPanel panel = null)
     {
         Text = "Добавить солнечную панель";
-        Size = new Size(300, 250);
+        Size = new Size(300, 300);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -35,8 +35,12 @@ public class SolarPanelDialog : Form
         angleHorLabel = new Label { Text = "Угол (горизонт.)", Location = new Point(10, 130), Visible = staticOption.Checked };
         angleHorTextBox = new TextBox { Location = new Point(120, 130), Width = 100, Visible = staticOption.Checked, Text = panel?.AngleHorizontal?.ToString() ?? "" };
 
+        // 🔹 Поле для потребляемой мощности
+        consumptionLabel = new Label { Text = "Потребление (Вт):", Location = new Point(10, 160) };
+        consumptionTextBox = new TextBox { Location = new Point(120, 160), Width = 100, Text = panel?.ConsumptionPower.ToString() ?? "" };
+
         // 🔹 Кнопка подтверждения
-        confirmButton = new Button { Text = "Добавить", Location = new Point(10, 170), Width = 200 };
+        confirmButton = new Button { Text = "Добавить", Location = new Point(10, 200), Width = 200 };
         confirmButton.Click += ConfirmButton_Click;
 
         Controls.AddRange(new Control[] {
@@ -44,6 +48,7 @@ public class SolarPanelDialog : Form
             powerLabel, powerTextBox,
             angleVertLabel, angleVertTextBox,
             angleHorLabel, angleHorTextBox,
+            consumptionLabel, consumptionTextBox,
             confirmButton
         });
 
@@ -75,6 +80,12 @@ public class SolarPanelDialog : Form
             return;
         }
 
+        if (!double.TryParse(consumptionTextBox.Text, out double consumption) || consumption < 0)
+        {
+            MessageBox.Show("Введите корректную потребляемую мощность.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
         double? angleVert = null, angleHor = null;
 
         if (staticOption.Checked)
@@ -97,7 +108,8 @@ public class SolarPanelDialog : Form
             staticOption.Checked ? "Статическая" : "Динамическая",
             power,
             angleVert,
-            angleHor
+            angleHor,
+            consumption
         );
 
         DialogResult = DialogResult.OK;

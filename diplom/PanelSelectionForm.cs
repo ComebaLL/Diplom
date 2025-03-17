@@ -12,13 +12,14 @@ namespace SolarPowerCalculator
         private FlowLayoutPanel panelContainer;
         private List<SolarPanel> solarPanels;
         private Button openMapButton; // 🔹 Кнопка для открытия карты
+        private Button calculateButton; // 🔹 Кнопка для расчета выработки
         private List<CheckBox> panelCheckBoxes = new List<CheckBox>(); // 🔹 Список чекбоксов для выделения
 
         public PanelSelectionForm(List<SolarPanel> panels)
         {
             solarPanels = panels;
             Text = "Выбор солнечных панелей";
-            Size = new Size(650, 450);
+            Size = new Size(650, 500);
 
             // 🔹 Контейнер для списка панелей
             panelContainer = new FlowLayoutPanel
@@ -39,6 +40,16 @@ namespace SolarPowerCalculator
             };
             openMapButton.Click += OpenMapButton_Click;
             Controls.Add(openMapButton);
+
+            // 🔹 Кнопка "Рассчитать выработку"
+            calculateButton = new Button
+            {
+                Text = "Рассчитать выработку",
+                Location = new Point(220, 380),
+                Width = 200
+            };
+            calculateButton.Click += CalculateButton_Click;
+            Controls.Add(calculateButton);
 
             LoadPanels();
         }
@@ -77,6 +88,15 @@ namespace SolarPowerCalculator
         /// </summary>
         private void OpenMapButton_Click(object sender, EventArgs e)
         {
+            var mapForm = new MapForm();
+            mapForm.ShowDialog();
+        }
+
+        /// <summary>
+        /// 🔹 Вызываем расчет выработки для выбранных панелей
+        /// </summary>
+        private void CalculateButton_Click(object sender, EventArgs e)
+        {
             var selectedPanels = panelCheckBoxes
                 .Where(cb => cb.Checked)
                 .Select(cb => (SolarPanel)cb.Tag)
@@ -88,8 +108,16 @@ namespace SolarPowerCalculator
                 return;
             }
 
-            var mapForm = new MapForm();
-            mapForm.ShowDialog();
+            try
+            {
+                var calculator = new SolarEnergyCalculator();
+                calculator.CalculateWeeklyEnergy();
+                MessageBox.Show("Расчёт завершён! Данные сохранены в energy_weekly.txt", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при расчёте: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

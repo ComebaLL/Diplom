@@ -21,12 +21,14 @@ namespace SolarPowerCalculator
         private List<PointLatLng> selectedPoints = new List<PointLatLng>();
         private List<GMapPolygon> selectedSectors = new List<GMapPolygon>();
         private PointLatLng? _savedAveragePoint;
-        //private const string PVGIS_API_URL = "https://re.jrc.ec.europa.eu/api/v5_2/timeseries";
+
         private const string OPENWEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast";
+        private const string PVGIS_API_URL = "https://re.jrc.ec.europa.eu/api/v5_2/timeseries";
         private static readonly HttpClient client = new HttpClient();
+
         private const double Step = 0.15;
         private const string WeatherFilePath = "weather_weekly.txt";
-        private const string DNIFilePath = "dni_weekly.txt";
+        private const string SolarDataFilePath = "solar_data.txt";
 
         public event Action<PointLatLng> AverageCoordinatesSelected;
 
@@ -130,7 +132,6 @@ namespace SolarPowerCalculator
             _savedAveragePoint = averagePoint;
             SaveCoordinatesToFile(averagePoint);
             FetchAndSaveWeatherData(averagePoint);
-            FetchAndSaveDNI(averagePoint);
             MessageBox.Show($"Средние координаты сохранены:\nШирота: {averagePoint.Lat}\nДолгота: {averagePoint.Lng}", "Информация");
             AverageCoordinatesSelected?.Invoke(averagePoint);
             Close();
@@ -152,60 +153,21 @@ namespace SolarPowerCalculator
 
         private static void SaveCoordinatesToFile(PointLatLng coordinates)
         {
-            const string filePath = "coordinates.txt";
-            File.WriteAllText(filePath, $"Широта: {coordinates.Lat}\nДолгота: {coordinates.Lng}");
-            Console.WriteLine($"Координаты сохранены в {filePath}");
+            File.WriteAllText("coordinates.txt", $"Широта: {coordinates.Lat}\nДолгота: {coordinates.Lng}");
         }
 
         private async void FetchAndSaveWeatherData(PointLatLng coordinates)
         {
-            string weatherUrl = $"{OPENWEATHER_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&units=metric&appid=917617f28fc2c155c406a5abcf99ec92";
-            //string dniUrl = $"{PVGIS_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&start={DateTime.UtcNow:yyyy-MM-dd}&end={DateTime.UtcNow.AddDays(7):yyyy-MM-dd}&outputformat=json&usehorizon=1&components=1";
-            const string filePath = "weather_weekly.txt";
+            string weatherUrl = $"{OPENWEATHER_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&units=metric&appid=443c1cb752e066cac67dcca488486dd6";
             try
             {
                 string jsonResponse = await client.GetStringAsync(weatherUrl);
-                File.WriteAllText(filePath, jsonResponse);
-                Console.WriteLine($"Прогноз погоды на неделю сохранён в {filePath}");
+                File.WriteAllText(WeatherFilePath, jsonResponse);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка получения прогноза погоды: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        private async void FetchAndSaveDNI(PointLatLng coordinates)
-        {
-            string apiKey = "EmfUA53avO9LeohQPtarH01Ep2cuLlHedUQzeaut";
-            string year = "2020"; // Берем исторические данные за 2020 год
-            DateTime today = DateTime.UtcNow;
-            DateTime weekLater = today.AddDays(6); // Берем прогноз на 7 дней
-
-            string dniUrl = $"https://developer.nrel.gov/api/nsrdb/v2/solar/himawari-download.csv?" +
-                            $"names={year}&wkt=POINT({coordinates.Lng}+{coordinates.Lat})&interval=60" +
-                            $"&api_key={apiKey}&email=gumball20045@gmail.com";
-
-            try
-            {
-                string csvResponse = await client.GetStringAsync(dniUrl);
-
-                // Сохраняем в файл
-                string filePath = "dni_weekly.txt";
-                using (StreamWriter writer = new StreamWriter(filePath, false))
-                {
-                    writer.WriteLine($"DNI данные за неделю ({year}) для координат: {coordinates.Lat}, {coordinates.Lng}");
-                    writer.Write(csvResponse);
-                }
-
-                Console.WriteLine($"DNI данные за неделю сохранены в {filePath}");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка получения DNI данных: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-
-
     }
 }

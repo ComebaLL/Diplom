@@ -10,20 +10,25 @@ public class SolarPanel
     public double Power { get; set; } // Мощность (Вт)
     public double? AngleVertical { get; set; } // Угол по вертикали (только для статичных)
     public double? AngleHorizontal { get; set; } // Угол по горизонтали (только для статичных)
+     
+    public double? ConsumptionPower { get; set; } // потребляемая мощность
 
-    public SolarPanel(string type, double power, double? angleVertical = null, double? angleHorizontal = null)
+    public SolarPanel(string type, double power, double? angleVertical = null, double? angleHorizontal = null, double? consumptionPower = null)
     {
         Type = type;
         Power = power;
         AngleVertical = angleVertical;
         AngleHorizontal = angleHorizontal;
+        ConsumptionPower = consumptionPower;
     }
 
     public override string ToString()
     {
-        return Type == "Статическая"
+        string baseInfo = Type == "Статическая"
             ? $"{Type} | {Power} Вт | Вертик.: {AngleVertical}° | Горизонт.: {AngleHorizontal}°"
             : $"{Type} | {Power} Вт";
+
+        return $"{baseInfo} | Потребление: {ConsumptionPower} Вт";
     }
 
     public void Update(SolarPanel newData)
@@ -31,6 +36,7 @@ public class SolarPanel
         Power = newData.Power;
         AngleVertical = newData.AngleVertical;
         AngleHorizontal = newData.AngleHorizontal;
+        ConsumptionPower = newData.ConsumptionPower;
     }
 }
 

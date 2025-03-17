@@ -62,6 +62,14 @@
           }
         }
       },
+      "HtmlAgilityPack/1.12.0": {
+        "runtime": {
+          "lib/net8.0/HtmlAgilityPack.dll": {
+            "assemblyVersion": "1.12.0.0",
+            "fileVersion": "1.12.0.0"
+          }
+        }
+      },
       "LiveCharts/0.9.7": {
         "runtime": {
           "lib/net45/LiveCharts.dll": {
@@ -433,6 +441,13 @@
       "sha512": "sha512-2i5xewUZN4gjUdjWN/r54TybhaxRJDsoDHqIub0C9juLbyXF6bodL2/moK6UM5LAcol2GZee4Bxy8hD4E9bGaQ==",
       "path": "gmap.net.winforms/2.1.6",
       "hashPath": "gmap.net.winforms.2.1.6.nupkg.sha512"
+    },
+    "HtmlAgilityPack/1.12.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VHtVZmfoYhQyA/POvZRLuTpCz1zhzIDrdYRJIRV73e9wKAzjW71biYNOHOWx8MxEX3TE4TWVfx1QDRoZcj2AWw==",
+      "path": "htmlagilitypack/1.12.0",
+      "hashPath": "htmlagilitypack.1.12.0.nupkg.sha512"
     },
     "LiveCharts/0.9.7": {
       "type": "package",
