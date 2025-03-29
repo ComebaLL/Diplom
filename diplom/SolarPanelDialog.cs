@@ -107,10 +107,12 @@ public class SolarPanelDialog : Form
         CreatedPanel = new SolarPanel(
             staticOption.Checked ? "Статическая" : "Динамическая",
             power,
+            consumption,  
             angleVert,
-            angleHor,
-            consumption
+            angleHor
         );
+
+
 
         DialogResult = DialogResult.OK;
         Close();

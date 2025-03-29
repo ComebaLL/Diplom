@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using GMap.NET;
 
 namespace SolarPowerCalculator
 {
@@ -11,9 +10,9 @@ namespace SolarPowerCalculator
     {
         private FlowLayoutPanel panelContainer;
         private List<SolarPanel> solarPanels;
-        private Button openMapButton; // 🔹 Кнопка для открытия карты
-        private Button calculateButton; // 🔹 Кнопка для расчета выработки
-        private List<CheckBox> panelCheckBoxes = new List<CheckBox>(); // 🔹 Список чекбоксов для выделения
+        private Button openMapButton; //  Кнопка для открытия карты
+        private Button calculateButton; //  Кнопка для расчета выработки
+        private List<CheckBox> panelCheckBoxes = new List<CheckBox>(); //  Список чекбоксов для выделения
 
         public PanelSelectionForm(List<SolarPanel> panels)
         {
@@ -21,7 +20,7 @@ namespace SolarPowerCalculator
             Text = "Выбор солнечных панелей";
             Size = new Size(650, 500);
 
-            // 🔹 Контейнер для списка панелей
+            //  Контейнер для списка панелей
             panelContainer = new FlowLayoutPanel
             {
                 Location = new Point(10, 10),
@@ -31,7 +30,7 @@ namespace SolarPowerCalculator
             };
             Controls.Add(panelContainer);
 
-            // 🔹 Кнопка "Открыть карту"
+            //  Кнопка "Открыть карту"
             openMapButton = new Button
             {
                 Text = "Открыть карту",
@@ -41,7 +40,7 @@ namespace SolarPowerCalculator
             openMapButton.Click += OpenMapButton_Click;
             Controls.Add(openMapButton);
 
-            // 🔹 Кнопка "Рассчитать выработку"
+            //  Кнопка "Рассчитать выработку"
             calculateButton = new Button
             {
                 Text = "Рассчитать выработку",
@@ -54,9 +53,7 @@ namespace SolarPowerCalculator
             LoadPanels();
         }
 
-        /// <summary>
-        /// 🔹 Загружаем список панелей с чекбоксами
-        /// </summary>
+        /// Загружаем список панелей с чекбоксами
         private void LoadPanels()
         {
             panelContainer.Controls.Clear();
@@ -81,20 +78,17 @@ namespace SolarPowerCalculator
                 panelControl.Controls.Add(checkBox);
                 panelContainer.Controls.Add(panelControl);
             }
+
         }
 
-        /// <summary>
-        /// 🔹 Открываем карту
-        /// </summary>
+        /// Открываем карту
         private void OpenMapButton_Click(object sender, EventArgs e)
         {
             var mapForm = new MapForm();
             mapForm.ShowDialog();
         }
 
-        /// <summary>
-        /// 🔹 Вызываем расчет выработки для выбранных панелей
-        /// </summary>
+        ///  Вызываем расчет выработки для выбранных пан
         private void CalculateButton_Click(object sender, EventArgs e)
         {
             var selectedPanels = panelCheckBoxes
@@ -110,9 +104,11 @@ namespace SolarPowerCalculator
 
             try
             {
-                var calculator = new SolarEnergyCalculator();
-                calculator.CalculateWeeklyEnergy();
-                MessageBox.Show("Расчёт завершён! Данные сохранены в energy_weekly.txt", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                /// Передаем список выбранных панелей в SolarCalculator
+                var calculator = new SolarCalculator(selectedPanels);
+                calculator.CalculateWeeklyProduction();
+
+                MessageBox.Show("Расчёт завершён! Данные сохранены в energy_weekly.txt", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {

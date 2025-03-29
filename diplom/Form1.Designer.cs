@@ -14,7 +14,7 @@ namespace SolarPowerCalculator
         private FlowLayoutPanel panelContainer;
         private Panel addPanelButton;
         private MenuStrip menuStrip;
-        private Button openSelectionButton; // 🔹 Кнопка для открытия выбора панелей
+        private Button openSelectionButton; //  Кнопка для открытия выбора панелей
         private const string FilePath = "solar_panels.json";
 
         public MainForm()
@@ -23,7 +23,7 @@ namespace SolarPowerCalculator
             Size = new Size(650, 500);
             KeyPreview = true;
 
-            // 🔹 Добавляем меню
+            //  Добавляем меню
             menuStrip = new MenuStrip();
             var fileMenu = new ToolStripMenuItem("Файл");
             var saveMenuItem = new ToolStripMenuItem("Сохранить список", null, SavePanels) { ShortcutKeys = Keys.Control | Keys.S };
@@ -32,7 +32,7 @@ namespace SolarPowerCalculator
             menuStrip.Items.Add(fileMenu);
             Controls.Add(menuStrip);
 
-            // 🔹 Контейнер для панелей
+            //  Контейнер для панелей
             panelContainer = new FlowLayoutPanel
             {
                 Location = new Point(10, 30),
@@ -42,7 +42,7 @@ namespace SolarPowerCalculator
             };
             Controls.Add(panelContainer);
 
-            // 🔹 Кастомная кнопка "Добавить панель"
+            //  Кастомная кнопка "Добавить панель"
             addPanelButton = new Panel
             {
                 Size = new Size(100, 100),
@@ -54,7 +54,7 @@ namespace SolarPowerCalculator
             addPanelButton.Click += AddPanelButton_Click;
             panelContainer.Controls.Add(addPanelButton);
 
-            // 🔹 Кнопка для открытия выбора панелей
+            //  Кнопка для открытия выбора панелей
             openSelectionButton = new Button
             {
                 Text = "Выбрать панели для расчета",
@@ -68,9 +68,9 @@ namespace SolarPowerCalculator
             LoadPanels(); // Загружаем панели при старте
         }
 
-        /// <summary>
-        /// 🔹 Отображение кнопки "+" для добавления панели
-        /// </summary>
+
+        ///  Отображение кнопки "+" для добавления панели
+
         private void AddPanelButton_Paint(object sender, PaintEventArgs e)
         {
             using (Pen pen = new Pen(Color.Black, 4))
@@ -83,9 +83,9 @@ namespace SolarPowerCalculator
             }
         }
 
-        /// <summary>
-        /// 🔹 Добавление новой панели
-        /// </summary>
+
+        ///  Добавление новой панели
+
         private void AddPanelButton_Click(object sender, EventArgs e)
         {
             using (var dialog = new SolarPanelDialog())
@@ -97,9 +97,9 @@ namespace SolarPowerCalculator
             }
         }
 
-        /// <summary>
-        /// 🔹 Добавляет панель в список и интерфейс
-        /// </summary>
+
+        ///  Добавляет панель в список и интерфейс
+
         private void AddPanel(SolarPanel panel)
         {
             solarPanels.Add(panel);
@@ -108,9 +108,9 @@ namespace SolarPowerCalculator
             panelContainer.Controls.SetChildIndex(addPanelButton, panelContainer.Controls.Count - 1);
         }
 
-        /// <summary>
-        /// 🔹 Создаёт элемент управления для панели
-        /// </summary>
+
+        ///  Создаёт элемент управления для панели
+
         private Panel CreatePanelControl(SolarPanel panel)
         {
             var panelControl = new Panel
@@ -125,6 +125,20 @@ namespace SolarPowerCalculator
                 Text = panel.ToString(),
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            var countControl = new NumericUpDown
+            {
+                Minimum = 1,
+                Maximum = 100,
+                Value = panel.Count,
+                Dock = DockStyle.Bottom,
+                Width = 50
+            };
+            countControl.ValueChanged += (s, e) =>
+            {
+                panel.Count = (int)countControl.Value;
+                label.Text = panel.ToString();
             };
 
             var editButton = new Button
@@ -144,15 +158,15 @@ namespace SolarPowerCalculator
             removeButton.Click += (s, e) => RemovePanel(panel, panelControl);
 
             panelControl.Controls.Add(label);
+            panelControl.Controls.Add(countControl);
             panelControl.Controls.Add(editButton);
             panelControl.Controls.Add(removeButton);
 
             return panelControl;
         }
 
-        /// <summary>
-        /// 🔹 Редактирование панели
-        /// </summary>
+        ///  Редактирование панели
+
         private void EditPanel(SolarPanel panel, Panel panelControl, Label label)
         {
             using (var dialog = new SolarPanelDialog(panel))
@@ -165,18 +179,17 @@ namespace SolarPowerCalculator
             }
         }
 
-        /// <summary>
-        /// 🔹 Удаление панели
-        /// </summary>
+
+        ///  Удаление панели
+
         private void RemovePanel(SolarPanel panel, Panel panelControl)
         {
             solarPanels.Remove(panel);
             panelContainer.Controls.Remove(panelControl);
         }
 
-        /// <summary>
-        /// 🔹 Сохранение списка панелей в JSON
-        /// </summary>
+        /// <summary>        ///  Сохранение списка панелей в JSON
+
         private void SavePanels(object sender, EventArgs e)
         {
             try
@@ -190,9 +203,8 @@ namespace SolarPowerCalculator
             }
         }
 
-        /// <summary>
-        /// 🔹 Загрузка списка панелей из JSON
-        /// </summary>
+
+        ///  Загрузка списка панелей из JSON
         private void LoadPanels(object sender = null, EventArgs e = null)
         {
             if (!File.Exists(FilePath)) return;
@@ -212,9 +224,7 @@ namespace SolarPowerCalculator
             }
         }
 
-        /// <summary>
-        /// 🔹 Открывает окно выбора панелей для расчета
-        /// </summary>
+        ///  Открывает окно выбора панелей для расчета
         private void OpenPanelSelection(object sender, EventArgs e)
         {
             using (var selectionForm = new PanelSelectionForm(solarPanels))
@@ -223,9 +233,7 @@ namespace SolarPowerCalculator
             }
         }
 
-        /// <summary>
-        /// 🔹 Обработчик горячих клавиш
-        /// </summary>
+        ///  Обработчик горячих клавиш
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (keyData == (Keys.Control | Keys.S))

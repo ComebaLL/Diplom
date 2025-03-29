@@ -7,9 +7,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using GMap.NET;
+using GMap.NET.MapProviders;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
-using GMap.NET.MapProviders;
 using Newtonsoft.Json.Linq;
 
 namespace SolarPowerCalculator
@@ -23,12 +23,12 @@ namespace SolarPowerCalculator
         private PointLatLng? _savedAveragePoint;
 
         private const string OPENWEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast";
-        private const string PVGIS_API_URL = "https://re.jrc.ec.europa.eu/api/v5_2/timeseries";
-        private static readonly HttpClient client = new HttpClient();
+        private const string API_KEY = "443c1cb752e066cac67dcca488486dd6"; // 🔹 API-ключ OpenWeather
+        private const string WeatherFilePath = "weather_weekly.txt";
+        private const string CoordinatesFilePath = "coordinates.txt";
 
         private const double Step = 0.15;
-        private const string WeatherFilePath = "weather_weekly.txt";
-        private const string SolarDataFilePath = "solar_data.txt";
+        private static readonly HttpClient client = new HttpClient();
 
         public event Action<PointLatLng> AverageCoordinatesSelected;
 
@@ -55,9 +55,12 @@ namespace SolarPowerCalculator
             Task.Run(GenerateGridAsync);
         }
 
+        /// <summary>
+        /// 🔹 Генерация сетки Забайкальского края
+        /// </summary>
         private async Task GenerateGridAsync()
         {
-            Console.WriteLine("Генерация сетки Забайкальского края...");
+            Console.WriteLine("Генерация сетки...");
             List<GMapPolygon> polygons = new List<GMapPolygon>();
 
             for (double lat = 49.0; lat <= 55.0; lat += Step)
@@ -91,6 +94,9 @@ namespace SolarPowerCalculator
             }));
         }
 
+        /// <summary>
+        /// 🔹 Обработка кликов по карте
+        /// </summary>
         private void Gmap_MouseClick(object sender, MouseEventArgs e)
         {
             var point = gmap.FromLocalToLatLng(e.X, e.Y);
@@ -104,6 +110,8 @@ namespace SolarPowerCalculator
             }
         }
 
+
+        ///  Выбор или отмена выбора сектора
         private void ToggleSectorSelection(PointLatLng point)
         {
             foreach (var polygon in gridOverlay.Polygons)
@@ -124,6 +132,8 @@ namespace SolarPowerCalculator
             }
         }
 
+
+        ///  Сохранение средних координат
         private void SaveAverageCoordinates()
         {
             selectedPoints.Clear();
@@ -137,6 +147,8 @@ namespace SolarPowerCalculator
             Close();
         }
 
+
+        ///  Получение центра сектора
         private static PointLatLng GetPolygonCenter(GMapPolygon polygon)
         {
             var latCenter = polygon.Points.Average(p => p.Lat);
@@ -144,6 +156,7 @@ namespace SolarPowerCalculator
             return new PointLatLng(latCenter, lngCenter);
         }
 
+        ///  Расчет средних координат
         private PointLatLng CalculateAverageCoordinates()
         {
             if (!selectedPoints.Any())
@@ -151,22 +164,46 @@ namespace SolarPowerCalculator
             return new PointLatLng(selectedPoints.Average(p => p.Lat), selectedPoints.Average(p => p.Lng));
         }
 
+        /// Сохранение координат в файл        
         private static void SaveCoordinatesToFile(PointLatLng coordinates)
         {
-            File.WriteAllText("coordinates.txt", $"Широта: {coordinates.Lat}\nДолгота: {coordinates.Lng}");
+            File.WriteAllText(CoordinatesFilePath, $"Широта: {coordinates.Lat}\nДолгота: {coordinates.Lng}");
         }
-
+       
+        ///  Получение прогноза погоды и сохранение в файл
         private async void FetchAndSaveWeatherData(PointLatLng coordinates)
         {
-            string weatherUrl = $"{OPENWEATHER_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&units=metric&appid=443c1cb752e066cac67dcca488486dd6";
+            string weatherUrl = $"{OPENWEATHER_API_URL}?lat={coordinates.Lat}&lon={coordinates.Lng}&units=metric&appid={API_KEY}";
             try
             {
                 string jsonResponse = await client.GetStringAsync(weatherUrl);
-                File.WriteAllText(WeatherFilePath, jsonResponse);
+                var weatherData = JObject.Parse(jsonResponse);
+
+                var forecastList = weatherData["list"]
+                    .Select(d => new
+                    {
+                        Date = (string)d["dt_txt"],  // Дата и время прогноза
+                        Cloudiness = (int)d["clouds"]["all"],  // Облачность, %
+                        Temperature = (double)d["main"]["temp"] // Температура, °C
+                    })
+                    .Take(7 * 8)  //  7 дней, 8 прогнозов в день (каждые 3 часа)
+                    .ToList();
+
+                // Записываем данные в файл
+                using (StreamWriter writer = new StreamWriter(WeatherFilePath, false))
+                {
+                    writer.WriteLine("Дата;Облачность (%);Температура (°C)");
+                    foreach (var entry in forecastList)
+                    {
+                        writer.WriteLine($"{entry.Date};{entry.Cloudiness};{entry.Temperature}");
+                    }
+                }
+
+                Console.WriteLine($"Погода на неделю сохранена в {WeatherFilePath}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка получения прогноза погоды: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка получения прогноза: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
