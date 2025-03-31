@@ -106,7 +106,7 @@ namespace SolarPowerCalculator
             {
                 /// Передаем список выбранных панелей в SolarCalculator
                 var calculator = new SolarCalculator(selectedPanels);
-                calculator.CalculateWeeklyProduction();
+                calculator.CalculateEnergyProduction();
 
                 MessageBox.Show("Расчёт завершён! Данные сохранены в energy_weekly.txt", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }

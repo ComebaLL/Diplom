@@ -55,9 +55,7 @@ namespace SolarPowerCalculator
             Task.Run(GenerateGridAsync);
         }
 
-        /// <summary>
-        /// 🔹 Генерация сетки Забайкальского края
-        /// </summary>
+        ///  Генерация сетки Забайкальского края
         private async Task GenerateGridAsync()
         {
             Console.WriteLine("Генерация сетки...");
@@ -94,9 +92,7 @@ namespace SolarPowerCalculator
             }));
         }
 
-        /// <summary>
-        /// 🔹 Обработка кликов по карте
-        /// </summary>
+        ///  Обработка кликов по карте
         private void Gmap_MouseClick(object sender, MouseEventArgs e)
         {
             var point = gmap.FromLocalToLatLng(e.X, e.Y);
@@ -186,7 +182,7 @@ namespace SolarPowerCalculator
                         Cloudiness = (int)d["clouds"]["all"],  // Облачность, %
                         Temperature = (double)d["main"]["temp"] // Температура, °C
                     })
-                    .Take(7 * 8)  //  7 дней, 8 прогнозов в день (каждые 3 часа)
+                    .Take(8 * 8)  //  7 дней, 8 прогнозов в день (каждые 3 часа)
                     .ToList();
 
                 // Записываем данные в файл

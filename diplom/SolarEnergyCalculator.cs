@@ -1,30 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using GMap.NET;
-using Newtonsoft.Json.Linq;
 
 public class SolarCalculator
 {
     private List<SolarPanel> _panels;
     private double _latitude;
     private double _longitude;
-    private const double Pi = Math.PI;
+    private Dictionary<int, (TimeSpan Sunrise, TimeSpan SolarNoon, TimeSpan Sunset)> _sunData;
 
     private const string CoordinatesFile = "coordinates.txt";
-    private const string SunDataFile = "sun_data.csv";
     private const string WeatherDataFile = "weather_weekly.txt";
+    private const string SunDataFile = "sun_data.csv";
     private const string OutputFile = "energy_weekly.txt";
+
+    private const double Pi = Math.PI;
 
     public SolarCalculator(List<SolarPanel> panels)
     {
-        _panels = panels.Where(p => p.IsChecked).ToList(); /// Учитываем только выбранные панели
+        _panels = panels.Where(p => p.IsChecked).ToList();
+        _sunData = new Dictionary<int, (TimeSpan Sunrise, TimeSpan SolarNoon, TimeSpan Sunset)>();
         LoadCoordinatesFromFile();
+        LoadSunData();
     }
 
-    /// Загружаем координаты из файла
     private void LoadCoordinatesFromFile()
     {
         if (!File.Exists(CoordinatesFile))
@@ -38,158 +40,144 @@ public class SolarCalculator
             if (line.StartsWith("Долгота:"))
                 _longitude = double.Parse(line.Replace("Долгота:", "").Trim(), CultureInfo.GetCultureInfo("ru-RU"));
         }
+
+        Debug.WriteLine($"Загружены координаты: широта {_latitude}, долгота {_longitude}");
     }
 
-
-    /// Вычисляем склонение солнца (B) по дню года
-    private double CalculateSolarDeclination(int dayOfYear)
-    {
-        return 23.45 * Math.Sin((360.0 / 365.0) * (dayOfYear - 81) * Pi / 180);
-    }
-
-    /// Загружаем данные восхода, зенита и заката солнца
-    private (int sunrise, int solarNoon, int sunset) LoadSunTimes(int dayOfYear)
+    private void LoadSunData()
     {
         if (!File.Exists(SunDataFile))
-            throw new FileNotFoundException("Файл sun_data.csv не найден.");
+            throw new FileNotFoundException($"Файл {SunDataFile} не найден.");
 
-        var lines = File.ReadAllLines(SunDataFile);
-        foreach (var line in lines.Skip(1)) // Пропускаем заголовок
+        _sunData.Clear();
+        string[] lines = File.ReadAllLines(SunDataFile);
+
+        foreach (string line in lines.Skip(1))
         {
             var parts = line.Split(';');
             if (parts.Length < 4) continue;
 
-            if (DateTime.TryParseExact(parts[0], "dd.MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
+            if (DateTime.TryParseExact(parts[0] + ".2025", "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
             {
-                if (date.DayOfYear == dayOfYear)
+                int dayOfYear = date.DayOfYear;
+                if (TimeSpan.TryParse(parts[1], out TimeSpan sunrise) &&
+                    TimeSpan.TryParse(parts[2], out TimeSpan solarNoon) &&
+                    TimeSpan.TryParse(parts[3], out TimeSpan sunset))
                 {
-                    int sunrise = TimeToMinutes(parts[1]);
-                    int solarNoon = TimeToMinutes(parts[2]);
-                    int sunset = TimeToMinutes(parts[3]);
-                    return (sunrise, solarNoon, sunset);
+                    _sunData[dayOfYear] = (sunrise, solarNoon, sunset);
+                    Debug.WriteLine($"День {dayOfYear}: Восход {sunrise}, Зенит {solarNoon}, Закат {sunset}");
                 }
             }
         }
-        throw new Exception($"Нет данных о солнце для дня {dayOfYear}.");
+
+        Debug.WriteLine($"Загружены данные по солнцу на {_sunData.Count} дней");
     }
 
-    /// Конвертируем строковое время "ЧЧ:ММ" в минуты
-    private int TimeToMinutes(string time)
+    private (double solarElevation, double solarAzimuth) CalculateSolarPosition(DateTime time, DateTime sunrise, DateTime sunset, DateTime solarNoon)
     {
-        var parts = time.Split(':').Select(int.Parse).ToArray();
-        return parts[0] * 60 + parts[1];
+        double dayLength = (sunset - sunrise).TotalMinutes;
+        double timeSinceSunrise = (time - sunrise).TotalMinutes;
+
+        double solarElevation = -90 + (timeSinceSunrise / dayLength) * 180;
+        solarElevation = Math.Max(0, Math.Min(90, solarElevation));
+
+        double solarAzimuth = 180 * (timeSinceSunrise / dayLength);
+
+        Debug.WriteLine($"Дата: {time:yyyy-MM-dd HH:mm:ss}, Угол возвышения: {solarElevation}, Азимут: {solarAzimuth}");
+
+        return (solarElevation, solarAzimuth);
     }
 
-    /// Загружаем облачность на неделю
-    private double[] LoadCloudiness()
+    private double CalculateHourlyProduction(SolarPanel panel, double cloudiness, double solarElevation, double solarAzimuth)
     {
-        if (!File.Exists("weather_weekly.txt"))
-            throw new FileNotFoundException("Файл weather_weekly.txt не найден.");
+        if (solarElevation <= 0) return 0;
 
-        string[] lines = File.ReadAllLines("weather_weekly.txt");
+        double iZ = Math.Abs(180 - solarElevation);
+        double iA = Math.Abs(180 - solarAzimuth);
+        double incidenceAngle = Math.Sqrt(iA * iA + iZ * iZ) * (Pi / 180.0);
 
-        double[] cloudiness = new double[7];
-        int index = 0;
+        double kT = 1 - 0.75 * (cloudiness / 100.0);
+        double efficiency = 0.85;
 
-        for (int i = 1; i < lines.Length; i++) // Пропускаем заголовок
+        double power = panel.Power * Math.Cos(incidenceAngle) * kT * efficiency;
+        power = Math.Max(0, power);
+
+        Debug.WriteLine($"Дата: {DateTime.Now:yyyy-MM-dd HH:mm:ss}, Панель: {panel.Type}, Производство: {power:F2}");
+
+        return power;
+    }
+
+    public void CalculateEnergyProduction()
+    {
+        var weatherData = LoadWeatherData();
+
+        using (StreamWriter writer = new StreamWriter(OutputFile, false))
         {
-            var parts = lines[i].Split(';');
-            if (parts.Length < 2) continue;
+            writer.WriteLine("Дата и время | Выработка (Вт⋅ч) | Потребление (Вт⋅ч) | Чистая энергия (Вт⋅ч)");
 
-            if (index < 7) // Берём только первые 7 дней
+            foreach (var (time, cloudiness, temperature) in weatherData)
             {
-                cloudiness[index] = double.Parse(parts[1].Trim().Replace(",", "."), CultureInfo.InvariantCulture);
-                index++;
-            }
-        }
+                int dayOfYear = time.Date.DayOfYear;
+                if (!_sunData.ContainsKey(dayOfYear)) continue;
 
-        if (index < 7)
-            throw new Exception("Недостаточно данных о погоде в файле weather_weekly.txt.");
-        
+                var (sunrise, solarNoon, sunset) = _sunData[dayOfYear];
 
-        return cloudiness;
-    }
+                DateTime sunriseTime = time.Date + sunrise;
+                DateTime solarNoonTime = time.Date + solarNoon;
+                DateTime sunsetTime = time.Date + sunset;
 
-    /// Вычисляем выработку электроэнергии за неделю
-    public void CalculateWeeklyProduction()
-    {
-        //DebugOutput();
-        double[] cloudiness = LoadCloudiness();
+                Debug.WriteLine($"Дата: {time:yyyy-MM-dd HH:mm:ss}, Восход: {sunriseTime}, Закат: {sunsetTime}");
 
-        System.Diagnostics.Debug.WriteLine($"Облачность на неделю: {string.Join(", ", cloudiness.Select(c => c.ToString("F2")))}");
-
-        if (_panels.Count == 0)
-        {
-            Console.WriteLine("Нет выбранных панелей для расчета.");
-            return;
-        }
-
-        using (StreamWriter writer = new StreamWriter(OutputFile))
-        {
-            writer.WriteLine("Дата | Выработка (Вт⋅ч) | Потребление (Вт⋅ч) | Чистая энергия (Вт⋅ч)");
-
-            for (int i = 0; i < 7; i++)
-            {
-                int dayOfYear = DateTime.Now.AddDays(i).DayOfYear;
-                double declination = CalculateSolarDeclination(dayOfYear);
-                (int sunrise, int solarNoon, int sunset) = LoadSunTimes(dayOfYear);
-
-                System.Diagnostics.Debug.WriteLine($"День {i + 1}: склонение {declination:F2}, восход {sunrise}, зенит {solarNoon}, закат {sunset}");
+                if (time < sunriseTime || time > sunsetTime)
+                {
+                    writer.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | 0.00 | 0.00 | 0.00");
+                    continue;
+                }
 
                 double totalProduction = 0;
                 double totalConsumption = 0;
 
+                var (solarElevation, solarAzimuth) = CalculateSolarPosition(time, sunriseTime, sunsetTime, solarNoonTime);
+
                 foreach (var panel in _panels)
                 {
-                    double dailyProduction = CalculateDailyProduction(panel, declination, sunrise, solarNoon, sunset, cloudiness[i]);
-                    totalProduction += dailyProduction;
-                    totalConsumption += panel.ConsumptionPower * ((sunset - sunrise) / 60.0); // Вт⋅ч
-
-                    System.Diagnostics.Debug.WriteLine($"Панель {panel.Type}: Выработка {dailyProduction:F2} Вт⋅ч, Потребление {panel.ConsumptionPower} Вт");
+                    double production = CalculateHourlyProduction(panel, cloudiness, solarElevation, solarAzimuth);
+                    totalProduction += production;
+                    totalConsumption += panel.ConsumptionPower;
                 }
 
                 double netEnergy = totalProduction - totalConsumption;
-                writer.WriteLine($"{DateTime.Now.AddDays(i):dd.MM.yyyy} | {totalProduction:F2} Вт⋅ч | {totalConsumption:F2} Вт⋅ч | {netEnergy:F2} Вт⋅ч");
+                writer.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {totalProduction:F2} | {totalConsumption:F2} | {netEnergy:F2}");
 
-                System.Diagnostics.Debug.WriteLine($"День {i + 1}: Общая выработка {totalProduction:F2} Вт⋅ч, Общее потребление {totalConsumption:F2} Вт⋅ч, Чистая энергия {netEnergy:F2} Вт⋅ч");
+                Debug.WriteLine($"Дата: {time:yyyy-MM-dd HH:mm:ss}, Производство: {totalProduction:F2}, Потребление: {totalConsumption:F2}, Чистая энергия: {netEnergy:F2}");
             }
         }
-        string fullpathfile = Path.GetFullPath(OutputFile);
+
         Console.WriteLine($"Результаты сохранены в {Path.GetFullPath(OutputFile)}");
     }
 
-    /// Вычисляем дневную выработку электроэнергии для панелей
-    private double CalculateDailyProduction(SolarPanel panel, double declination, int sunrise, int solarNoon, int sunset, double cloudFactor)
+    private List<(DateTime time, double cloudiness, double temperature)> LoadWeatherData()
     {
+        if (!File.Exists(WeatherDataFile))
+            throw new FileNotFoundException("Файл weather_weekly.txt не найден.");
 
-        double totalEnergy = 0.0;
-        double kT = 1 - 0.75 * cloudFactor; // Коэффициент пропускания облаков
+        var lines = File.ReadAllLines(WeatherDataFile).Skip(1);
+        var weatherData = new List<(DateTime, double, double)>();
 
-        for (int H = sunrise; H <= sunset; H++)
+        foreach (var line in lines)
         {
-            double hourAngle = (H - solarNoon) * (15 * Pi / 180);
-            double elevation = Math.Asin(Math.Sin(declination * Pi / 180) * Math.Sin(_latitude * Pi / 180) +
-                                         Math.Cos(declination * Pi / 180) * Math.Cos(_latitude * Pi / 180) * Math.Cos(hourAngle));
+            var parts = line.Split(';');
+            if (parts.Length < 3) continue;
 
-            if (panel.AngleVertical == null) continue;
-            double panelTilt = panel.AngleVertical.Value * Pi / 180;
+            DateTime time = DateTime.ParseExact(parts[0], "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            double cloudiness = double.Parse(parts[1], CultureInfo.InvariantCulture);
+            double temperature = double.Parse(parts[2], CultureInfo.InvariantCulture);
 
-            // Новый расчет угла падения солнечных лучей
-            double incidenceAngle = Math.Acos(
-                Math.Sin(elevation) * Math.Sin(panelTilt) +
-                Math.Cos(elevation) * Math.Cos(panelTilt)
-            );
-
-            if (incidenceAngle > Pi / 2) continue; // Если солнце за горизонтом
-
-            double efficiency = 0.85; // КПД панели
-            double power = panel.Power * Math.Cos(incidenceAngle) * kT * efficiency / 60; // Переводим в Вт⋅ч
-
-            totalEnergy += power;
+            weatherData.Add((time, cloudiness, temperature));
         }
 
-        return totalEnergy;
+        Debug.WriteLine($"Загружены погодные данные: {weatherData.Count} записей");
+
+        return weatherData;
     }
-
-
 }
