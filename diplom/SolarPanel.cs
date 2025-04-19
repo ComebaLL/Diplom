@@ -18,8 +18,19 @@ public class SolarPanel
 
     public bool IsChecked { get; set; } // проверка выбранна ли панель
 
-    public SolarPanel(string type, double power, double consumptionPower, double? angleVertical = null, double? angleHorizontal = null, int count = 1)
+    public int RotationVertical { get; set; }
+    public int RotationHorizontal { get; set; }
 
+
+    public SolarPanel(
+        string type,
+        double power,
+        double consumptionPower,
+        double? angleVertical = null,
+        double? angleHorizontal = null,
+        int count = 1,
+        int rotationVertical = 0,
+        int rotationHorizontal = 0)
     {
         Type = type;
         Power = power;
@@ -27,7 +38,10 @@ public class SolarPanel
         AngleVertical = angleVertical;
         AngleHorizontal = angleHorizontal;
         Count = count;
+        RotationVertical = rotationVertical;
+        RotationHorizontal = rotationHorizontal;
     }
+
 
     public override string ToString()
     {
@@ -43,6 +57,9 @@ public class SolarPanel
         AngleHorizontal = newData.AngleHorizontal;
         ConsumptionPower = newData.ConsumptionPower;
         Count = newData.Count;
+        IsChecked = newData.IsChecked;
+        RotationVertical = newData.RotationVertical;
+        RotationHorizontal = newData.RotationHorizontal;
     }
 
 }

@@ -92,20 +92,35 @@ public class SolarCalculator
     {
         if (solarElevation <= 0) return 0;
 
-        double iZ = Math.Abs(180 - solarElevation);
-        double iA = Math.Abs(180 - solarAzimuth);
-        double incidenceAngle = Math.Sqrt(iA * iA + iZ * iZ) * (Pi / 180.0);
+        double angleVert = Convert.ToDouble(panel.AngleVertical);
+        double angleHoriz = Convert.ToDouble(panel.AngleHorizontal);
+        double iZ = Math.Abs(angleVert - solarElevation);
+        double iA = Math.Abs(angleHoriz - solarAzimuth);
+        double incidenceAngleDeg = Math.Sqrt(iA * iA + iZ * iZ); // в градусах
+        double incidenceAngleRad = incidenceAngleDeg * (Math.PI / 180.0); // в радианах
 
+        double cosIncidence = Math.Cos(incidenceAngleRad);
         double kT = 1 - 0.75 * (cloudiness / 100.0);
         double efficiency = 0.85;
 
-        double power = panel.Power * Math.Cos(incidenceAngle) * kT * efficiency;
+        double rawPower = Convert.ToDouble(panel.Power);
+        double power = rawPower * cosIncidence * kT * efficiency;
         power = Math.Max(0, power);
 
-        Debug.WriteLine($"Дата: {DateTime.Now:yyyy-MM-dd HH:mm:ss}, Панель: {panel.Type}, Производство: {power:F2}");
+        Debug.WriteLine($"Панель: {panel.Type}");
+        Debug.WriteLine($"  Мощность: {panel.Power} Вт");
+        Debug.WriteLine($"  Углы панели: вертикальный = {panel.AngleVertical}, горизонтальный = {panel.AngleHorizontal}");
+        Debug.WriteLine($"  Облачность: {cloudiness}% → kT: {kT:F3}");
+        Debug.WriteLine($"  Углы отклонения: iA = {iA:F2}°, iZ = {iZ:F2}°, итог = {incidenceAngleDeg:F2}°");
+        Debug.WriteLine($"  Угол падения (рад): {incidenceAngleRad:F4}, cos(i) = {cosIncidence:F4}");
+        Debug.WriteLine($"  Выработка (до Max): {rawPower:F2} Вт, финально: {power:F2} Вт");
+        Debug.WriteLine(new string('-', 60));
 
         return power;
     }
+
+
+
 
     public void CalculateEnergyProduction()
     {
@@ -137,7 +152,9 @@ public class SolarCalculator
                 double totalProduction = 0;
                 double totalConsumption = 0;
 
-                var (solarElevation, solarAzimuth) = CalculateSolarPosition(time, sunriseTime, sunsetTime, solarNoonTime);
+                //var (solarElevation, solarAzimuth) = CalculateSolarPosition(time, sunriseTime, sunsetTime, solarNoonTime);
+                var (solarElevation, solarAzimuth) = CalculateScientificSolarPosition(time);
+
 
                 foreach (var panel in _panels)
                 {
@@ -180,4 +197,38 @@ public class SolarCalculator
 
         return weatherData;
     }
+
+    /// расчёт положения солнца
+    private (double Elevation, double Azimuth) CalculateScientificSolarPosition(DateTime time)
+    {
+        int dayOfYear = time.DayOfYear;
+        double f = _latitude * (Math.PI / 180); // широта в радианах
+
+        // Склонение солнца
+        double b = 23.45 * Math.Sin((2 * Math.PI / 365) * (dayOfYear - 81));
+        double bRad = b * (Math.PI / 180); // в радианах
+
+        // Время
+        double B = 2 * Math.PI * (dayOfYear - 81) / 364;
+        double EoT = 9.87 * Math.Sin(2 * B) - 7.53 * Math.Cos(B) - 1.5 * Math.Sin(B);
+        double solarTimeCorrection = 4 * (_longitude - 15 * TimeZoneInfo.Local.BaseUtcOffset.TotalHours) + EoT;
+        double solarTime = time.TimeOfDay.TotalMinutes + solarTimeCorrection;
+
+        double H = (solarTime - 720) * 0.25; // Часовой угол в градусах
+        double Hrad = H * (Math.PI / 180);
+
+        // Угол возвышения
+        double elevation = Math.Asin(Math.Sin(bRad) * Math.Sin(f) + Math.Cos(bRad) * Math.Cos(f) * Math.Cos(Hrad));
+        elevation = elevation * (180 / Math.PI);
+
+        // Азимут
+        double azimuth = Math.Acos((Math.Sin(bRad) * Math.Cos(f) - Math.Cos(bRad) * Math.Sin(f) * Math.Cos(Hrad)) / Math.Cos(elevation * Math.PI / 180));
+        azimuth = H > 0 ? 180 + azimuth * (180 / Math.PI) : 180 - azimuth * (180 / Math.PI);
+        azimuth = azimuth % 360;
+
+        Debug.WriteLine($"  b = {b:F2}°, H = {H:F2}°, Elevation = {elevation:F2}°, Azimuth = {azimuth:F2}°");
+
+        return (elevation, azimuth);
+    }
+
 }

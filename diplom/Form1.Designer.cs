@@ -115,14 +115,18 @@ namespace SolarPowerCalculator
         {
             var panelControl = new Panel
             {
-                Size = new Size(200, 80),
+                Size = new Size(200, 100),
                 BorderStyle = BorderStyle.FixedSingle,
                 Tag = panel
             };
 
+            string anglesInfo = panel.Type == "Динамическая"
+                ? $"Повороты: V={panel.RotationVertical}, H={panel.RotationHorizontal}"
+                : $"Углы: V={panel.AngleVertical}°, H={panel.AngleHorizontal}°";
+
             var label = new Label
             {
-                Text = panel.ToString(),
+                Text = $"{panel.Type} | {panel.Power} Вт | Потр: {panel.ConsumptionPower} Вт\n{anglesInfo}",
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter
             };
@@ -138,7 +142,7 @@ namespace SolarPowerCalculator
             countControl.ValueChanged += (s, e) =>
             {
                 panel.Count = (int)countControl.Value;
-                label.Text = panel.ToString();
+                label.Text = $"{panel.Type} | {panel.Power} Вт | Потр: {panel.ConsumptionPower} Вт\n{anglesInfo}";
             };
 
             var editButton = new Button
@@ -164,6 +168,7 @@ namespace SolarPowerCalculator
 
             return panelControl;
         }
+
 
         ///  Редактирование панели
 

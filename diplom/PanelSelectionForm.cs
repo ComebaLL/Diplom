@@ -10,9 +10,9 @@ namespace SolarPowerCalculator
     {
         private FlowLayoutPanel panelContainer;
         private List<SolarPanel> solarPanels;
-        private Button openMapButton; //  Кнопка для открытия карты
-        private Button calculateButton; //  Кнопка для расчета выработки
-        private List<CheckBox> panelCheckBoxes = new List<CheckBox>(); //  Список чекбоксов для выделения
+        private Button openMapButton; // Кнопка для открытия карты
+        private Button calculateButton; // Кнопка для расчета выработки
+        private List<CheckBox> panelCheckBoxes = new List<CheckBox>(); // Список чекбоксов
 
         public PanelSelectionForm(List<SolarPanel> panels)
         {
@@ -20,7 +20,7 @@ namespace SolarPowerCalculator
             Text = "Выбор солнечных панелей";
             Size = new Size(650, 500);
 
-            //  Контейнер для списка панелей
+            // Контейнер для списка панелей
             panelContainer = new FlowLayoutPanel
             {
                 Location = new Point(10, 10),
@@ -30,7 +30,7 @@ namespace SolarPowerCalculator
             };
             Controls.Add(panelContainer);
 
-            //  Кнопка "Открыть карту"
+            // Кнопка "Открыть карту"
             openMapButton = new Button
             {
                 Text = "Открыть карту",
@@ -40,7 +40,7 @@ namespace SolarPowerCalculator
             openMapButton.Click += OpenMapButton_Click;
             Controls.Add(openMapButton);
 
-            //  Кнопка "Рассчитать выработку"
+            // Кнопка "Рассчитать выработку"
             calculateButton = new Button
             {
                 Text = "Рассчитать выработку",
@@ -71,14 +71,14 @@ namespace SolarPowerCalculator
                 {
                     Text = panel.ToString(),
                     Dock = DockStyle.Fill,
-                    Tag = panel
+                    Tag = panel,
+                    Checked = panel.IsChecked // Учитываем сохранённое состояние
                 };
 
                 panelCheckBoxes.Add(checkBox);
                 panelControl.Controls.Add(checkBox);
                 panelContainer.Controls.Add(panelControl);
             }
-
         }
 
         /// Открываем карту
@@ -88,13 +88,17 @@ namespace SolarPowerCalculator
             mapForm.ShowDialog();
         }
 
-        ///  Вызываем расчет выработки для выбранных пан
+        /// Запускаем расчёт
         private void CalculateButton_Click(object sender, EventArgs e)
         {
-            var selectedPanels = panelCheckBoxes
-                .Where(cb => cb.Checked)
-                .Select(cb => (SolarPanel)cb.Tag)
-                .ToList();
+            // Обновляем IsChecked у всех панелей по состоянию чекбоксов
+            foreach (var checkBox in panelCheckBoxes)
+            {
+                if (checkBox.Tag is SolarPanel panel)
+                    panel.IsChecked = checkBox.Checked;
+            }
+
+            var selectedPanels = solarPanels.Where(p => p.IsChecked).ToList();
 
             if (selectedPanels.Count == 0)
             {
@@ -104,7 +108,6 @@ namespace SolarPowerCalculator
 
             try
             {
-                /// Передаем список выбранных панелей в SolarCalculator
                 var calculator = new SolarCalculator(selectedPanels);
                 calculator.CalculateEnergyProduction();
 
