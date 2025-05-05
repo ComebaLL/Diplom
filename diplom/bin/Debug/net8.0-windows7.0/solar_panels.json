@@ -1,0 +1,24 @@
+[
+  {
+    "Type": "\u0421\u0442\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F",
+    "Power": 100,
+    "ConsumptionPower": 100,
+    "AngleVertical": 50,
+    "AngleHorizontal": 50,
+    "Count": 1,
+    "IsChecked": false,
+    "RotationVertical": 0,
+    "RotationHorizontal": 0
+  },
+  {
+    "Type": "\u0414\u0438\u043D\u0430\u043C\u0438\u0447\u0435\u0441\u043A\u0430\u044F",
+    "Power": 100,
+    "ConsumptionPower": 100,
+    "AngleVertical": null,
+    "AngleHorizontal": null,
+    "Count": 1,
+    "IsChecked": false,
+    "RotationVertical": 5,
+    "RotationHorizontal": 5
+  }
+]

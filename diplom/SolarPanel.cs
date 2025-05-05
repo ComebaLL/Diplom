@@ -18,8 +18,8 @@ public class SolarPanel
 
     public bool IsChecked { get; set; } // проверка выбранна ли панель
 
-    public int RotationVertical { get; set; }
-    public int RotationHorizontal { get; set; }
+    public int RotationVertical { get; set; } // вертикальный угол поворота
+    public int RotationHorizontal { get; set; } // горизонтальный угол поворота
 
 
     public SolarPanel(
@@ -61,6 +61,27 @@ public class SolarPanel
         RotationVertical = newData.RotationVertical;
         RotationHorizontal = newData.RotationHorizontal;
     }
+
+    public List<string> Validate()
+    {
+        var errors = new List<string>();
+        if (Power <= 0 || Power > 10000) errors.Add("Power");
+        if (ConsumptionPower < 0 || ConsumptionPower > 10000) errors.Add("Consumption");
+
+        if (Type == "Статическая")
+        {
+            if (AngleVertical is null or < 0 or > 90) errors.Add("AngleVertical");
+            if (AngleHorizontal is null or < 0 or > 90) errors.Add("AngleHorizontal");
+        }
+        else if (Type == "Динамическая")
+        {
+            if (RotationVertical < 0 || RotationVertical > 50) errors.Add("RotationVertical");
+            if (RotationHorizontal < 0 || RotationHorizontal > 50) errors.Add("RotationHorizontal");
+        }
+
+        return errors;
+    }
+
 
 }
 

@@ -165,7 +165,8 @@ namespace SolarPowerCalculator
         {
             File.WriteAllText(CoordinatesFilePath, $"Широта: {coordinates.Lat}\nДолгота: {coordinates.Lng}");
         }
-       
+
+
         ///  Получение прогноза погоды и сохранение в файл
         private async void FetchAndSaveWeatherData(PointLatLng coordinates)
         {
@@ -175,32 +176,54 @@ namespace SolarPowerCalculator
                 string jsonResponse = await client.GetStringAsync(weatherUrl);
                 var weatherData = JObject.Parse(jsonResponse);
 
-                var forecastList = weatherData["list"]
+                var rawForecast = weatherData["list"]
                     .Select(d => new
                     {
-                        Date = (string)d["dt_txt"],  // Дата и время прогноза
-                        Cloudiness = (int)d["clouds"]["all"],  // Облачность, %
-                        Temperature = (double)d["main"]["temp"] // Температура, °C
+                        DateTime = DateTime.Parse((string)d["dt_txt"]),
+                        Cloudiness = (int)d["clouds"]["all"],
+                        Temperature = (double)d["main"]["temp"]
                     })
-                    .Take(8 * 8)  //  7 дней, 8 прогнозов в день (каждые 3 часа)
                     .ToList();
 
-                // Записываем данные в файл
-                using (StreamWriter writer = new StreamWriter(WeatherFilePath, false))
+                /// Интерполированные значения
+                var interpolated = new List<(DateTime time, double cloudiness, double temperature)>();
+
+                for (int i = 0; i < rawForecast.Count - 1; i++)
                 {
-                    writer.WriteLine("Дата;Облачность (%);Температура (°C)");
-                    foreach (var entry in forecastList)
+                    var curr = rawForecast[i];
+                    var next = rawForecast[i + 1];
+
+                    // 3 исходные точки: T0, T1, T2 (через 0ч, 1ч, 2ч, 3ч)
+                    for (int h = 0; h < 3; h++)
                     {
-                        writer.WriteLine($"{entry.Date};{entry.Cloudiness};{entry.Temperature}");
+                        DateTime t = curr.DateTime.AddHours(h);
+                        double cloud = curr.Cloudiness + (next.Cloudiness - curr.Cloudiness) * (h / 3.0);
+                        double temp = curr.Temperature + (next.Temperature - curr.Temperature) * (h / 3.0);
+                        interpolated.Add((t, cloud, temp));
                     }
                 }
 
-                Console.WriteLine($"Погода на неделю сохранена в {WeatherFilePath}");
+                // Добавляем последнюю точку
+                var last = rawForecast.Last();
+                interpolated.Add((last.DateTime, last.Cloudiness, last.Temperature));
+
+                // Сохраняем в файл
+                using (StreamWriter writer = new StreamWriter(WeatherFilePath, false))
+                {
+                    writer.WriteLine("Дата;Облачность (%);Температура (°C)");
+                    foreach (var entry in interpolated)
+                    {
+                        writer.WriteLine($"{entry.time:yyyy-MM-dd HH:mm:ss};{entry.cloudiness:F1};{entry.temperature:F1}");
+                    }
+                }
+
+                Console.WriteLine($"Интерполированные погодные данные сохранены в {WeatherFilePath}");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка получения прогноза: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
     }
 }

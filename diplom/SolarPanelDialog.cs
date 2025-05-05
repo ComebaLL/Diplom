@@ -88,52 +88,67 @@ public class SolarPanelDialog : Form
 
     private void ConfirmButton_Click(object sender, EventArgs e)
     {
-        if (!double.TryParse(powerTextBox.Text, out double power) || power <= 0)
+        // Сбрасываем цвет фона
+        powerTextBox.BackColor = Color.White;
+        consumptionTextBox.BackColor = Color.White;
+        angleVertTextBox.BackColor = Color.White;
+        angleHorTextBox.BackColor = Color.White;
+        rotationVertTextBox.BackColor = Color.White;
+        rotationHorTextBox.BackColor = Color.White;
+
+        // Парсим значения
+        bool isStatic = staticOption.Checked;
+        bool hasError = false;
+
+        double.TryParse(powerTextBox.Text, out double power);
+        double.TryParse(consumptionTextBox.Text, out double consumption);
+        double? angleVert = null, angleHor = null;
+        int rotV = 0, rotH = 0;
+
+        if (isStatic)
         {
-            MessageBox.Show("Введите корректную мощность.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
-        }
-
-        if (!double.TryParse(consumptionTextBox.Text, out double consumption) || consumption < 0)
-        {
-            MessageBox.Show("Введите корректное потребление.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
-        }
-
-        if (staticOption.Checked)
-        {
-            if (!double.TryParse(angleVertTextBox.Text, out double angleV) || angleV < 0 || angleV > 90)
-            {
-                MessageBox.Show("Введите вертикальный угол от 0 до 90°.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            if (!double.TryParse(angleHorTextBox.Text, out double angleH) || angleH < 0 || angleH > 90)
-            {
-                MessageBox.Show("Введите горизонтальный угол от 0 до 90°.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            CreatedPanel = new SolarPanel("Статическая", power, consumption, angleV, angleH);
+            if (double.TryParse(angleVertTextBox.Text, out double aV)) angleVert = aV;
+            if (double.TryParse(angleHorTextBox.Text, out double aH)) angleHor = aH;
         }
         else
         {
-            if (!int.TryParse(rotationVertTextBox.Text, out int rotV) || rotV < 0 || rotV > 360)
-            {
-                MessageBox.Show("Введите количество вертикальных поворотов (0–360).", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            if (!int.TryParse(rotationHorTextBox.Text, out int rotH) || rotH < 0 || rotH > 360)
-            {
-                MessageBox.Show("Введите количество горизонтальных поворотов (0–360).", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            CreatedPanel = new SolarPanel("Динамическая", power, consumption, null, null, 1, rotV, rotH);
+            int.TryParse(rotationVertTextBox.Text, out rotV);
+            int.TryParse(rotationHorTextBox.Text, out rotH);
         }
 
+        var panel = new SolarPanel(
+            isStatic ? "Статическая" : "Динамическая",
+            power,
+            consumption,
+            angleVert,
+            angleHor,
+            1,
+            rotV,
+            rotH
+        );
+
+        var errors = panel.Validate();
+
+        if (errors.Contains("Power")) { powerTextBox.BackColor = Color.MistyRose; hasError = true; }
+        if (errors.Contains("Consumption")) { consumptionTextBox.BackColor = Color.MistyRose; hasError = true; }
+
+        if (isStatic)
+        {
+            if (errors.Contains("AngleVertical")) { angleVertTextBox.BackColor = Color.MistyRose; hasError = true; }
+            if (errors.Contains("AngleHorizontal")) { angleHorTextBox.BackColor = Color.MistyRose; hasError = true; }
+        }
+        else
+        {
+            if (errors.Contains("RotationVertical")) { rotationVertTextBox.BackColor = Color.MistyRose; hasError = true; }
+            if (errors.Contains("RotationHorizontal")) { rotationHorTextBox.BackColor = Color.MistyRose; hasError = true; }
+        }
+
+        if (hasError) return;
+
+        CreatedPanel = panel;
         DialogResult = DialogResult.OK;
         Close();
     }
+
+
 }

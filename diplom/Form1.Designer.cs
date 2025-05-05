@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text.Json;
@@ -31,6 +32,7 @@ namespace SolarPowerCalculator
             fileMenu.DropDownItems.AddRange(new ToolStripItem[] { saveMenuItem, loadMenuItem });
             menuStrip.Items.Add(fileMenu);
             Controls.Add(menuStrip);
+            ClearOldEnergyFiles();
 
             //  Контейнер для панелей
             panelContainer = new FlowLayoutPanel
@@ -65,7 +67,7 @@ namespace SolarPowerCalculator
             openSelectionButton.Click += OpenPanelSelection;
             Controls.Add(openSelectionButton);
 
-            LoadPanels(); // Загружаем панели при старте
+            //LoadPanels(); // Загружаем панели при старте
         }
 
 
@@ -147,7 +149,7 @@ namespace SolarPowerCalculator
 
             var editButton = new Button
             {
-                Text = "✏️",
+                Text = "E",
                 Dock = DockStyle.Left,
                 Width = 30
             };
@@ -155,7 +157,7 @@ namespace SolarPowerCalculator
 
             var removeButton = new Button
             {
-                Text = "🗑️",
+                Text = "D",
                 Dock = DockStyle.Right,
                 Width = 30
             };
@@ -193,41 +195,64 @@ namespace SolarPowerCalculator
             panelContainer.Controls.Remove(panelControl);
         }
 
-        /// <summary>        ///  Сохранение списка панелей в JSON
+        ///  Сохранение списка панелей в JSON
 
         private void SavePanels(object sender, EventArgs e)
         {
-            try
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                File.WriteAllText(FilePath, JsonSerializer.Serialize(solarPanels, new JsonSerializerOptions { WriteIndented = true }));
-                MessageBox.Show("Список панелей сохранён!", "Сохранение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                saveFileDialog.Filter = "JSON файлы (*.json)|*.json|Все файлы (*.*)|*.*";
+                saveFileDialog.Title = "Сохранить список панелей";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        string json = JsonSerializer.Serialize(solarPanels, new JsonSerializerOptions { WriteIndented = true });
+                        File.WriteAllText(saveFileDialog.FileName, json);
+                        MessageBox.Show("Список панелей сохранён!", "Сохранение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
+
 
 
         ///  Загрузка списка панелей из JSON
         private void LoadPanels(object sender = null, EventArgs e = null)
         {
-            if (!File.Exists(FilePath)) return;
-            try
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                solarPanels = JsonSerializer.Deserialize<List<SolarPanel>>(File.ReadAllText(FilePath)) ?? new List<SolarPanel>();
-                panelContainer.Controls.Clear();
-                panelContainer.Controls.Add(addPanelButton);
-                foreach (var panel in solarPanels)
+                openFileDialog.Filter = "JSON файлы (*.json)|*.json|Все файлы (*.*)|*.*";
+                openFileDialog.Title = "Загрузить список панелей";
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    panelContainer.Controls.Add(CreatePanelControl(panel));
+                    try
+                    {
+                        string json = File.ReadAllText(openFileDialog.FileName);
+                        solarPanels = JsonSerializer.Deserialize<List<SolarPanel>>(json) ?? new List<SolarPanel>();
+
+                        panelContainer.Controls.Clear();
+                        panelContainer.Controls.Add(addPanelButton);
+
+                        foreach (var panel in solarPanels)
+                        {
+                            panelContainer.Controls.Add(CreatePanelControl(panel));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка загрузки: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка загрузки: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
+
 
         ///  Открывает окно выбора панелей для расчета
         private void OpenPanelSelection(object sender, EventArgs e)
@@ -251,7 +276,42 @@ namespace SolarPowerCalculator
                 LoadPanels(this, EventArgs.Empty);
                 return true;
             }
+            /*
+            if (keyData == (Keys.Control | Keys.N))
+            {
+                CreatePanelControl(SolarPanel panel);
+                return true;
+            }*/
+                    
             return base.ProcessCmdKey(ref msg, keyData);
         }
+
+        private void ClearOldEnergyFiles()
+        {
+            string[] filesToClear =
+            {
+        "energy_static.txt",
+        "energy_tracker.txt",
+        "energy_static_month.txt",
+        "energy_static_year.txt",
+        "energy_tracker_month.txt",
+        "energy_tracker_year.txt",
+        "energy_weekly.txt"
+    };
+
+            foreach (var file in filesToClear)
+            {
+                try
+                {
+                    if (File.Exists(file))
+                        File.WriteAllText(file, string.Empty); // Очистить файл
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Не удалось очистить файл {file}: {ex.Message}");
+                }
+            }
+        }
+
     }
 }

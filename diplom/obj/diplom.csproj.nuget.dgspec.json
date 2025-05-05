@@ -69,6 +69,10 @@
             "LiveCharts.WinForms": {
               "target": "Package",
               "version": "[0.9.7.1, )"
+            },
+            "OxyPlot.WindowsForms": {
+              "target": "Package",
+              "version": "[2.2.0, )"
             }
           },
           "imports": [
