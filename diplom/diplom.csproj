@@ -19,6 +19,8 @@
 
   <ItemGroup>
     <PackageReference Include="Aspose.GIS" Version="24.11.0" />
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="EPPlus" Version="8.0.3" />
     <PackageReference Include="GMap.NET.Core" Version="2.1.6" />
     <PackageReference Include="GMap.NET.WinForms" Version="2.1.6" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />

@@ -1,3 +1,4 @@
+using OfficeOpenXml;
 using SolarPowerCalculator;
 /*
  требуемая мощьность, текущая мощность вычесляеться как кол-во понелей умноженное на их мощность(мощность может быть разная); 2 угла по вертикали\горизонталь;
@@ -17,6 +18,8 @@ namespace diplom
         [STAThread]
         static void Main()
         {
+            //ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());

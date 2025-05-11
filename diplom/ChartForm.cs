@@ -6,8 +6,10 @@ using System.Linq;
 using System.Windows.Forms;
 using OxyPlot;
 using OxyPlot.Axes;
+using OxyPlot.Legends;
 using OxyPlot.Series;
 using OxyPlot.WindowsForms;
+using OxyPlot.Legends;
 
 public class ChartForm : Form
 {
@@ -49,6 +51,18 @@ public class ChartForm : Form
         var plotView = new PlotView { Dock = DockStyle.Fill };
         var plotModel = new PlotModel { Title = title };
 
+        // Создаём легенду и настраиваем её параметры
+        var legend = new Legend
+        {
+            LegendPosition = LegendPosition.TopRight,
+            LegendPlacement = LegendPlacement.Outside,
+            LegendOrientation = LegendOrientation.Horizontal,
+            LegendBorderThickness = 0
+        };
+
+        // Добавляем легенду в модель графика
+        plotModel.Legends.Add(legend);
+
         if (compare)
         {
             var staticData = LoadData(GetFile("static"));
@@ -75,6 +89,7 @@ public class ChartForm : Form
                         trackerSeries.Points.Add(new DataPoint(DateTimeAxis.ToDouble(time), energy));
                     plotModel.Series.Add(trackerSeries);
                 }
+
 
                 AddAxes(plotModel);
             }

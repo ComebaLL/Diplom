@@ -23,7 +23,7 @@ namespace SolarPowerCalculator
         private PointLatLng? _savedAveragePoint;
 
         private const string OPENWEATHER_API_URL = "https://api.openweathermap.org/data/2.5/forecast";
-        private const string API_KEY = "443c1cb752e066cac67dcca488486dd6"; // 🔹 API-ключ OpenWeather
+        private const string API_KEY = "443c1cb752e066cac67dcca488486dd6"; // API-ключ OpenWeather
         private const string WeatherFilePath = "weather_weekly.txt";
         private const string CoordinatesFilePath = "coordinates.txt";
 
