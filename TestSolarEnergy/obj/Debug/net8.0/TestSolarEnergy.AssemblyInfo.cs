@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TestSolarEnergy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2a8f2c1d7cc1286df7bc025ce8aeddd57be0d0b4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8b33537d1c95e937016b4cb5a7ea747d62e83576")]
 [assembly: System.Reflection.AssemblyProductAttribute("TestSolarEnergy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TestSolarEnergy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

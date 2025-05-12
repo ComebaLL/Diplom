@@ -112,118 +112,261 @@ public class SolarCalculator
     }
 
 
-    /// Выполняет расчет выработки и потребления энергии солнечными панелями в заданном диапазоне дат.
-    public void CalculateEnergyProduction(DateTime startDate, DateTime endDate)
+    /*
+    /// Выполняет расчет выработки и потребления энергии для всех статических/трекер панелей на неделю по часово
+    public void CalculateWeeklyEnergyProduction()
     {
-        // Загружаем погодные данные и отбираем те, которые попадают в указанный диапазон дат
-        var weatherData = LoadWeatherData()
-            .Where(d => d.time.Date >= startDate.Date && d.time.Date <= endDate.Date)
-            .OrderBy(d => d.time)
-            .ToList();
+        // Загружаем прогноз погоды на год
+        var weatherData = LoadYearlyWeatherData();
 
-        // Имена файлов для вывода результатов
-        string staticFile = "energy_static.txt";
-        string trackerFile = "energy_tracker.txt";
+        // Устанавливаем диапазон расчета: ближайшие 7 дней от сегодняшней даты
+        DateTime startDate = DateTime.Today;
+        DateTime endDate = startDate.AddDays(7);
 
-        // Создаем два потока записи в файлы
-        using (StreamWriter staticWriter = new StreamWriter(staticFile, false))
-        using (StreamWriter trackerWriter = new StreamWriter(trackerFile, false))
+        // Подготовка путей к .txt файлам
+        string staticTxt = "energy_static_weekly.txt";
+        string trackerTxt = "energy_tracker_weekly.txt";
+
+        // Создаём или открываем Excel-документ
+        string excelPath = "energy_report.xlsx";
+        var workbook = File.Exists(excelPath) ? new XLWorkbook(excelPath) : new XLWorkbook();
+
+        // Генерируем уникальные имена листов по дате
+        string dateTag = DateTime.Now.ToString("yyyy-MM-dd_HH-mm");
+        var staticSheet = workbook.Worksheets.Add($"Static_{dateTag}");
+        var trackerSheet = workbook.Worksheets.Add($"Tracker_{dateTag}");
+
+        // Запись в .txt файлы
+        using var staticWriter = new StreamWriter(staticTxt, false);
+        using var trackerWriter = new StreamWriter(trackerTxt, false);
+
+        staticWriter.WriteLine("Дата и время | Выработка (Вт⋅ч) | Потребление (Вт⋅ч)");
+        trackerWriter.WriteLine("Дата и время | Выработка (Вт⋅ч) | Потребление (Вт⋅ч)");
+
+        // Начальные строки в Excel (сначала пишем характеристики панелей)
+        int rowStatic = 1;
+        staticSheet.Cell(rowStatic++, 1).Value = "Характеристики статических панелей";
+        foreach (var p in _panels.Where(p => p.Type == "Статическая"))
         {
-            // Заголовки таблиц
-            staticWriter.WriteLine("Дата и время | Выработка (Вт⋅ч) | Потребление | Чистая энергия (Вт⋅ч)");
-            trackerWriter.WriteLine("Дата и время | Выработка (Вт⋅ч) | Потребление | Чистая энергия (Вт⋅ч)");
+            staticSheet.Cell(rowStatic++, 1).Value = $"Мощность: {p.Power}, УголV: {p.AngleVertical}, УголH: {p.AngleHorizontal}, Кол-во: {p.Count}, Потребление: {p.ConsumptionPower}";
+        }
+        rowStatic++; // Пропуск строки
+        staticSheet.Cell(rowStatic, 1).Value = "Дата и время";
+        staticSheet.Cell(rowStatic, 2).Value = "Выработка (Вт⋅ч)";
+        staticSheet.Cell(rowStatic, 3).Value = "Потребление (Вт⋅ч)";
+        rowStatic++;
 
-            // Перебираем каждый день в диапазоне
-            for (DateTime day = startDate.Date; day <= endDate.Date; day = day.AddDays(1))
+        int rowTracker = 1;
+        trackerSheet.Cell(rowTracker++, 1).Value = "Характеристики трекерных панелей";
+        foreach (var p in _panels.Where(p => p.Type == "Динамическая"))
+        {
+            trackerSheet.Cell(rowTracker++, 1).Value = $"Мощность: {p.Power}, ПоворотыV: {p.RotationVertical}, ПоворотыH: {p.RotationHorizontal}, Кол-во: {p.Count}, Потребление: {p.ConsumptionPower}";
+        }
+        rowTracker++;
+        trackerSheet.Cell(rowTracker, 1).Value = "Дата и время";
+        trackerSheet.Cell(rowTracker, 2).Value = "Выработка (Вт⋅ч)";
+        trackerSheet.Cell(rowTracker, 3).Value = "Потребление (Вт⋅ч)";
+        rowTracker++;
+
+        foreach (var (date, cloudiness) in weatherData)
+        {
+            if (date < startDate || date > endDate) continue;
+
+            int dayOfYear = date.DayOfYear;
+            if (!_sunData.ContainsKey(dayOfYear)) continue;
+
+            var (sunrise, _, sunset) = _sunData[dayOfYear];
+            DateTime sunriseTime = date.Date + sunrise;
+            DateTime sunsetTime = date.Date + sunset;
+
+            // Проходим каждый час в диапазоне восхода до заката
+            for (DateTime time = sunriseTime; time <= sunsetTime; time = time.AddHours(1))
             {
-                int dayOfYear = day.DayOfYear;
-                // Пропускаем день, если нет данных о солнце
-                if (!_sunData.ContainsKey(dayOfYear)) continue;
+                var (elevation, azimuth) = CalculateScientificSolarPosition(time);
+                if (elevation <= 0) continue;
 
-                // Получаем время восхода, зенита и заката
-                var (sunrise, solarNoon, sunset) = _sunData[dayOfYear];
-                DateTime sunriseTime = day + sunrise;
-                DateTime sunsetTime = day + sunset;
+                double staticProd = 0, staticCons = 0;
+                double trackerProd = 0, trackerCons = 0;
 
-                // Перебираем каждый час суток
-                for (int hour = 0; hour < 24; hour++)
+                // Считаем выработку и потребление отдельно для каждого типа панели
+                foreach (var panel in _panels)
                 {
-                    DateTime time = new DateTime(day.Year, day.Month, day.Day, hour, 0, 0);
-
-                    // Пропускаем часы до восхода и после заката
-                    if (time < sunriseTime || time > sunsetTime)
+                    if (panel.Type == "Статическая")
                     {
-                        Debug.WriteLine($"[Пропуск] {time:yyyy-MM-dd HH:mm:ss} вне диапазона: {sunriseTime:HH:mm} - {sunsetTime:HH:mm}");
-                        staticWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | 0.00 | 0.00 | 0.00");
-                        trackerWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | 0.00 | 0.00 | 0.00");
-                        continue;
+                        double energy = CalculateStaticPanelProduction(panel, cloudiness, elevation, azimuth);
+                        staticProd += energy * panel.Count;
+                        staticCons += panel.ConsumptionPower * panel.Count;
                     }
-
-                    // Ищем ближайшие погодные данные к текущему часу
-                    var closestWeather = weatherData
-                        .OrderBy(d => Math.Abs((d.time - time).TotalMinutes))
-                        .FirstOrDefault();
-
-                    if (closestWeather == default) continue;
-
-                    // Получаем облачность и температуру
-                    var (cloudiness, temperature) = (closestWeather.cloudiness, closestWeather.temperature);
-
-                    // Вычисляем солнечные углы: возвышение и азимут
-                    var (solarElevation, solarAzimuth) = CalculateScientificSolarPosition(time);
-
-                    // Обнуляем переменные для накопления выработки и потребления
-                    double staticProduction = 0, staticConsumption = 0;
-                    double trackerProduction = 0, trackerConsumption = 0;
-
-                    // Перебираем все панели
-                    foreach (var panel in _panels)
+                    else if (panel.Type == "Динамическая")
                     {
-                        if (panel.Type == "Динамическая")
-                        {
-                            // Расчет для динамической панели
-                            double p = CalculateTrackerPanelProduction(panel, cloudiness, solarElevation, solarAzimuth, time, sunriseTime, sunsetTime);
-                            trackerProduction += p * panel.Count;
-                            trackerConsumption += panel.ConsumptionPower * panel.Count;
-                        }
-                        else
-                        {
-                            // Расчет для статической панели
-                            double p = CalculateStaticPanelProduction(panel, cloudiness, solarElevation, solarAzimuth);
-                            staticProduction += p * panel.Count;
-                            staticConsumption += panel.ConsumptionPower * panel.Count;
-                        }
+                        double energy = CalculateTrackerPanelProduction(panel, cloudiness, elevation, azimuth, time, sunriseTime, sunsetTime);
+                        trackerProd += energy * panel.Count;
+                        trackerCons += panel.ConsumptionPower * panel.Count;
                     }
-
-                    // На закате учитываем возврат панели в исходное положение (энергия тратится)
-                    if (Math.Abs((time - sunsetTime).TotalMinutes) < 1)
-                    {
-                        foreach (var panel in _panels.Where(p => p.Type == "Динамическая"))
-                        {
-                            // Энергия на возврат пропорциональна числу поворотов
-                            double returnEnergy = 0.1 * panel.ConsumptionPower * (panel.RotationVertical + panel.RotationHorizontal);
-                            returnEnergy *= panel.Count;
-                            trackerConsumption += returnEnergy;
-
-                            Debug.WriteLine($"[ВОЗВРАТ] Панель: {panel.Type} | Энергия на возврат: {returnEnergy:F2} Вт");
-                        }
-                    }
-
-                    // Чистая энергия = выработка - потребление
-                    double staticNet = staticProduction - staticConsumption;
-                    double trackerNet = trackerProduction - trackerConsumption;
-
-                    // Запись в файл
-                    staticWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {staticProduction:F2} | {staticConsumption:F2} | {staticNet:F2}");
-                    trackerWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {trackerProduction:F2} | {trackerConsumption:F2} | {trackerNet:F2}");
-
-                    Debug.WriteLine($"Дата: {time:yyyy-MM-dd HH:mm:ss} | Static = {staticProduction:F2}, Tracker = {trackerProduction:F2}");
                 }
+
+                // Записываем в .txt файлы
+                staticWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {staticProd:F2} | {staticCons:F2}");
+                trackerWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {trackerProd:F2} | {trackerCons:F2}");
+
+                // Записываем в Excel (статические)
+                staticSheet.Cell(rowStatic, 1).Value = time;
+                staticSheet.Cell(rowStatic, 2).Value = staticProd;
+                staticSheet.Cell(rowStatic, 3).Value = staticCons;
+                rowStatic++;
+
+                // Записываем в Excel (трекерные)
+                trackerSheet.Cell(rowTracker, 1).Value = time;
+                trackerSheet.Cell(rowTracker, 2).Value = trackerProd;
+                trackerSheet.Cell(rowTracker, 3).Value = trackerCons;
+                rowTracker++;
             }
         }
 
-        Console.WriteLine($"Результаты сохранены в:\n - {Path.GetFullPath(staticFile)}\n - {Path.GetFullPath(trackerFile)}");
+        // Сохраняем Excel-документ
+        workbook.SaveAs(excelPath);
+        Console.WriteLine($"Выработка за неделю сохранена в:\n - {staticTxt}\n - {trackerTxt}\n - Excel: {excelPath}");
     }
+*/
+
+    /// расчет выработки на неделб для статик панели 
+    public void CalculateStaticPanelProductionForWeek()
+    {
+        var weatherData = LoadYearlyWeatherData();
+        DateTime startDate = DateTime.Today;
+        DateTime endDate = startDate.AddDays(7);
+
+        string staticTxt = "energy_static_weekly.txt";
+        string excelPath = "energy_report.xlsx";
+        var workbook = File.Exists(excelPath) ? new XLWorkbook(excelPath) : new XLWorkbook();
+        string dateTag = DateTime.Now.ToString("yyyy-MM-dd_HH-mm");
+        var staticSheet = workbook.Worksheets.Add($"Static_{dateTag}");
+
+        using var staticWriter = new StreamWriter(staticTxt, false);
+        staticWriter.WriteLine("Дата и время | Выработка | Потребление ");
+
+        int row = 1;
+        staticSheet.Cell(row++, 1).Value = "Характеристики статических панелей";
+        foreach (var p in _panels.Where(p => p.Type == "Статическая"))
+            staticSheet.Cell(row++, 1).Value = $"Мощность: {p.Power}, УголV: {p.AngleVertical}, УголH: {p.AngleHorizontal}, Кол-во: {p.Count}, Потр: {p.ConsumptionPower}";
+
+        row++;
+        staticSheet.Cell(row, 1).Value = "Дата и время";
+        staticSheet.Cell(row, 2).Value = "Выработка ";
+        staticSheet.Cell(row, 3).Value = "Потребление ";
+        row++;
+
+        foreach (var (date, cloudiness) in weatherData)
+        {
+            if (date < startDate || date > endDate) continue;
+            int dayOfYear = date.DayOfYear;
+            if (!_sunData.ContainsKey(dayOfYear)) continue;
+
+            var (sunrise, _, sunset) = _sunData[dayOfYear];
+            DateTime sunriseTime = date.Date + sunrise;
+            DateTime sunsetTime = date.Date + sunset;
+
+            for (DateTime time = sunriseTime; time <= sunsetTime; time = time.AddHours(1))
+            {
+                var (elev, azim) = CalculateScientificSolarPosition(time);
+                if (elev <= 0) continue;
+
+                double prod = 0, cons = 0;
+                foreach (var panel in _panels.Where(p => p.Type == "Статическая"))
+                {
+                    double energy = CalculateStaticPanelProduction(panel, cloudiness, elev, azim);
+                    prod += energy * panel.Count;
+                    cons += panel.ConsumptionPower * panel.Count;
+                }
+
+                staticWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {prod:F2} | {cons:F2}");
+                staticSheet.Cell(row, 1).Value = time;
+                staticSheet.Cell(row, 2).Value = prod;
+                staticSheet.Cell(row, 3).Value = cons;
+                row++;
+            }
+        }
+
+        workbook.SaveAs(excelPath);
+        Console.WriteLine($"Статическая выработка за неделю сохранена в:\n - {staticTxt}\n - Excel: {excelPath}");
+    }
+
+
+
+    /// Расчет выработки для трекер панели на неделю 
+    public void CalculateTrackerPanelProductionForWeek()
+    {
+        var weatherData = LoadYearlyWeatherData();
+        DateTime startDate = DateTime.Today;
+        DateTime endDate = startDate.AddDays(7);
+
+        string trackerTxt = "energy_tracker_weekly.txt";
+        string excelPath = "energy_report.xlsx";
+        var workbook = File.Exists(excelPath) ? new XLWorkbook(excelPath) : new XLWorkbook();
+        string dateTag = DateTime.Now.ToString("yyyy-MM-dd_HH-mm");
+        var trackerSheet = workbook.Worksheets.Add($"Tracker_{dateTag}");
+
+        using var trackerWriter = new StreamWriter(trackerTxt, false);
+        trackerWriter.WriteLine("Дата и время | Выработка  | Потребление ");
+
+        int row = 1;
+        trackerSheet.Cell(row++, 1).Value = "Характеристики трекерных панелей";
+        foreach (var p in _panels.Where(p => p.Type == "Динамическая"))
+            trackerSheet.Cell(row++, 1).Value = $"Мощность: {p.Power}, ПоворотыV: {p.RotationVertical}, ПоворотыH: {p.RotationHorizontal}, Кол-во: {p.Count}, Потр: {p.ConsumptionPower}";
+
+        row++;
+        trackerSheet.Cell(row, 1).Value = "Дата и время";
+        trackerSheet.Cell(row, 2).Value = "Выработка ";
+        trackerSheet.Cell(row, 3).Value = "Потребление ";
+        row++;
+
+        foreach (var (date, cloudiness) in weatherData)
+        {
+            if (date < startDate || date > endDate) continue;
+            int dayOfYear = date.DayOfYear;
+            if (!_sunData.ContainsKey(dayOfYear)) continue;
+
+            var (sunrise, _, sunset) = _sunData[dayOfYear];
+            DateTime sunriseTime = date.Date + sunrise;
+            DateTime sunsetTime = date.Date + sunset;
+
+            for (DateTime time = sunriseTime; time <= sunsetTime; time = time.AddHours(1))
+            {
+                var (elev, azim) = CalculateScientificSolarPosition(time);
+                if (elev <= 0) continue;
+
+                double prod = 0, cons = 0;
+                foreach (var panel in _panels.Where(p => p.Type == "Динамическая"))
+                {
+                    double energy = CalculateTrackerPanelProduction(panel, cloudiness, elev, azim, time, sunriseTime, sunsetTime);
+                    prod += energy * panel.Count;
+                    cons += panel.ConsumptionPower * panel.Count;
+                }
+
+                // Энергия возврата в конце дня
+                if (Math.Abs((time - sunsetTime).TotalMinutes) < 1)
+                {
+                    foreach (var panel in _panels.Where(p => p.Type == "Динамическая"))
+                    {
+                        double returnEnergy = 0.1 * panel.ConsumptionPower * (panel.RotationVertical + panel.RotationHorizontal) * panel.Count;
+                        cons += returnEnergy;
+                    }
+                }
+
+                trackerWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {prod:F2} | {cons:F2}");
+                trackerSheet.Cell(row, 1).Value = time;
+                trackerSheet.Cell(row, 2).Value = prod;
+                trackerSheet.Cell(row, 3).Value = cons;
+                row++;
+            }
+        }
+
+        workbook.SaveAs(excelPath);
+        Console.WriteLine($"Трекерная выработка за неделю сохранена в:\n - {trackerTxt}\n - Excel: {excelPath}");
+    }
+
+
+
 
 
 
@@ -482,18 +625,24 @@ public class SolarCalculator
     public void CalculateStaticPanelProductionForPeriod(string period)
     {
         var weatherData = LoadYearlyWeatherData();
-        string outputFile = "energy_static_month_year.xlsx";
+        string excelOutput = "energy_report.xlsx";
         string sheetName = $"Статика_{period}_{DateTime.Now:HHmmss}";
+        string txtOutput = period == "Месяц" ? "energy_static_month.txt" : "energy_static_year.txt";
 
-        using (var workbook = File.Exists(outputFile) ? new XLWorkbook(outputFile) : new XLWorkbook())
+        using (var workbook = File.Exists(excelOutput) ? new XLWorkbook(excelOutput) : new XLWorkbook())
+        using (var writer = new StreamWriter(txtOutput, false))
         {
             var worksheet = workbook.Worksheets.Add(sheetName);
-            worksheet.Cell(1, 1).Value = "Дата";
-            worksheet.Cell(1, 2).Value = "Выработка (Вт⋅ч)";
-            worksheet.Cell(1, 3).Value = "Потребление (Вт⋅ч)";
 
-            // Добавим параметры панелей
+            // Заголовки
+            worksheet.Cell(1, 1).Value = "Дата";
+            worksheet.Cell(1, 2).Value = "Выработка ";
+            worksheet.Cell(1, 3).Value = "Потребление ";
             worksheet.Cell(1, 5).Value = "Характеристики панелей:";
+
+            writer.WriteLine("Дата | Выработка | Потребление ");
+
+            // Характеристики панелей
             int rowInfo = 2;
             foreach (var panel in _panels.Where(p => p.Type == "Статическая"))
             {
@@ -527,7 +676,7 @@ public class SolarCalculator
                     foreach (var panel in _panels.Where(p => p.Type == "Статическая"))
                     {
                         double energy = CalculateStaticPanelProduction(panel, cloudiness, solarElevation, solarAzimuth);
-                        dailyProduction += energy * panel.Count * 0.5; // 30 минут
+                        dailyProduction += energy * panel.Count * 0.5; // полчаса
                     }
                 }
 
@@ -538,19 +687,26 @@ public class SolarCalculator
                 totalEnergy += dailyProduction;
                 totalConsumption += dailyConsumption;
 
+                // Запись в Excel
                 worksheet.Cell(row, 1).Value = date.ToString("yyyy-MM-dd");
                 worksheet.Cell(row, 2).Value = Math.Round(dailyProduction, 2);
                 worksheet.Cell(row, 3).Value = Math.Round(dailyConsumption, 2);
+
+                // Запись в TXT
+                writer.WriteLine($"{date:yyyy-MM-dd} | {dailyProduction:F2} | {dailyConsumption:F2}");
+
                 row++;
             }
 
             worksheet.Cell(row + 1, 1).Value = $"Итоговая выработка: {totalEnergy:F2} Вт⋅ч";
             worksheet.Cell(row + 2, 1).Value = $"Итоговое потребление: {totalConsumption:F2} Вт⋅ч";
 
-            workbook.SaveAs(outputFile);
-            Console.WriteLine($"Статические данные сохранены в Excel: {Path.GetFullPath(outputFile)}");
+            workbook.SaveAs(excelOutput);
+
+            Console.WriteLine($"Выработка сохранена:\n - Excel: {Path.GetFullPath(excelOutput)}\n - TXT: {Path.GetFullPath(txtOutput)}");
         }
     }
+
 
 
 
@@ -561,17 +717,24 @@ public class SolarCalculator
     public void CalculateTrackerPanelProductionForPeriod(string period)
     {
         var weatherData = LoadYearlyWeatherData();
-        string outputFile = "energy_tracker_month_year.xlsx";
+        string excelOutput = "energy_report.xlsx";
+        string txtOutput = period == "Месяц" ? "energy_tracker_month.txt" : "energy_tracker_year.txt";
         string sheetName = $"Трекер_{period}_{DateTime.Now:HHmmss}";
 
-        using (var workbook = File.Exists(outputFile) ? new XLWorkbook(outputFile) : new XLWorkbook())
+        using (var workbook = File.Exists(excelOutput) ? new XLWorkbook(excelOutput) : new XLWorkbook())
+        using (var writer = new StreamWriter(txtOutput, false))
         {
             var worksheet = workbook.Worksheets.Add(sheetName);
-            worksheet.Cell(1, 1).Value = "Дата";
-            worksheet.Cell(1, 2).Value = "Выработка (Вт⋅ч)";
-            worksheet.Cell(1, 3).Value = "Потребление (Вт⋅ч)";
 
+            // Заголовки
+            worksheet.Cell(1, 1).Value = "Дата";
+            worksheet.Cell(1, 2).Value = "Выработка ";
+            worksheet.Cell(1, 3).Value = "Потребление ";
             worksheet.Cell(1, 5).Value = "Характеристики панелей:";
+
+            writer.WriteLine("Дата | Выработка | Потребление ");
+
+            // Характеристики панелей
             int rowInfo = 2;
             foreach (var panel in _panels.Where(p => p.Type == "Динамическая"))
             {
@@ -623,18 +786,24 @@ public class SolarCalculator
                 totalEnergy += dailyProduction;
                 totalConsumption += dailyConsumption;
 
+                // Excel
                 worksheet.Cell(row, 1).Value = date.ToString("yyyy-MM-dd");
                 worksheet.Cell(row, 2).Value = Math.Round(dailyProduction, 2);
                 worksheet.Cell(row, 3).Value = Math.Round(dailyConsumption, 2);
+
+                // TXT
+                writer.WriteLine($"{date:yyyy-MM-dd} | {dailyProduction:F2} | {dailyConsumption:F2}");
+
                 row++;
             }
 
             worksheet.Cell(row + 1, 1).Value = $"Итоговая выработка: {totalEnergy:F2} Вт⋅ч";
             worksheet.Cell(row + 2, 1).Value = $"Итоговое потребление: {totalConsumption:F2} Вт⋅ч";
 
-            workbook.SaveAs(outputFile);
-            Console.WriteLine($"Динамические данные сохранены в Excel: {Path.GetFullPath(outputFile)}");
+            workbook.SaveAs(excelOutput);
+            Console.WriteLine($"Трекерные данные сохранены:\n - Excel: {Path.GetFullPath(excelOutput)}\n - TXT: {Path.GetFullPath(txtOutput)}");
         }
     }
+
 
 }

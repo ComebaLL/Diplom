@@ -37,7 +37,7 @@ public class ChartForm : Form
     {
         return period switch
         {
-            PeriodSelectionDialog.PeriodOption.Week => $"energy_{type}.txt",
+            PeriodSelectionDialog.PeriodOption.Week => $"energy_{type}_weekly.txt",
             PeriodSelectionDialog.PeriodOption.Month => $"energy_{type}_month.txt",
             PeriodSelectionDialog.PeriodOption.Year => $"energy_{type}_year.txt",
             _ => null

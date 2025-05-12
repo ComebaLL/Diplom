@@ -137,7 +137,7 @@ namespace SolarPowerCalculator
             var averagePoint = CalculateAverageCoordinates();
             _savedAveragePoint = averagePoint;
             SaveCoordinatesToFile(averagePoint);
-            FetchAndSaveWeatherData(averagePoint);
+            //FetchAndSaveWeatherData(averagePoint);
             MessageBox.Show($"Средние координаты сохранены:\nШирота: {averagePoint.Lat}\nДолгота: {averagePoint.Lng}", "Информация");
             AverageCoordinatesSelected?.Invoke(averagePoint);
             Close();
@@ -167,6 +167,7 @@ namespace SolarPowerCalculator
         }
 
 
+        /*
         ///  Получение прогноза погоды и сохранение в файл
         private async void FetchAndSaveWeatherData(PointLatLng coordinates)
         {
@@ -223,7 +224,7 @@ namespace SolarPowerCalculator
             {
                 MessageBox.Show($"Ошибка получения прогноза: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
+        }*/
+       
     }
 }

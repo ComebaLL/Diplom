@@ -290,8 +290,8 @@ namespace SolarPowerCalculator
         {
             string[] filesToClear =
             {
-        "energy_static.txt",
-        "energy_tracker.txt",
+        "energy_static_weekly.txt",
+        "energy_tracker_weekly.txt",
         "energy_static_month.txt",
         "energy_static_year.txt",
         "energy_tracker_month.txt",

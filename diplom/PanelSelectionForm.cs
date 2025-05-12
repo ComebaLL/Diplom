@@ -122,7 +122,10 @@ namespace SolarPowerCalculator
             switch (dialog.SelectedPeriod)
             {
                 case PeriodSelectionDialog.PeriodOption.Week:
-                    calculator.CalculateEnergyProduction(DateTime.Now.AddDays(-7), DateTime.Now);
+                    if (selectedPanels.All(p => p.Type == "Статическая"))
+                        calculator.CalculateStaticPanelProductionForWeek();
+                    else if (selectedPanels.All(p => p.Type == "Динамическая"))
+                        calculator.CalculateTrackerPanelProductionForWeek();
                     break;
 
                 case PeriodSelectionDialog.PeriodOption.Month:
@@ -165,8 +168,8 @@ namespace SolarPowerCalculator
             switch (dialog.SelectedPeriod)
             {
                 case PeriodSelectionDialog.PeriodOption.Week:
-                    staticFile = "energy_static.txt";
-                    trackerFile = "energy_tracker.txt";
+                    staticFile = "energy_static_weekly.txt";
+                    trackerFile = "energy_tracker_weekly.txt";
                     break;
                 case PeriodSelectionDialog.PeriodOption.Month:
                     staticFile = "energy_static_month.txt";
