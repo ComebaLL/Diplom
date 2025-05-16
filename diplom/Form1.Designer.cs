@@ -78,7 +78,7 @@ namespace SolarPowerCalculator
             using (Pen pen = new Pen(Color.Black, 4))
             {
                 int midX = addPanelButton.Width / 2;
-                int midY = addPanelButton.Height / 2;
+                int midY = addPanelButton.Height / 2;   
                 int size = 20;
                 e.Graphics.DrawLine(pen, midX - size, midY, midX + size, midY);
                 e.Graphics.DrawLine(pen, midX, midY - size, midX, midY + size);

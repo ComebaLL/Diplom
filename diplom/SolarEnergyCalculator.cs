@@ -253,7 +253,7 @@ public class SolarCalculator
         row++;
         staticSheet.Cell(row, 1).Value = "Дата и время";
         staticSheet.Cell(row, 2).Value = "Выработка ";
-        staticSheet.Cell(row, 3).Value = "Потребление ";
+        //staticSheet.Cell(row, 3).Value = "Потребление ";
         row++;
 
         foreach (var (date, cloudiness) in weatherData)
@@ -276,13 +276,13 @@ public class SolarCalculator
                 {
                     double energy = CalculateStaticPanelProduction(panel, cloudiness, elev, azim);
                     prod += energy * panel.Count;
-                    cons += panel.ConsumptionPower * panel.Count;
+                    //cons += panel.ConsumptionPower * panel.Count;
                 }
 
                 staticWriter.WriteLine($"{time:yyyy-MM-dd HH:mm:ss} | {prod:F2} | {cons:F2}");
                 staticSheet.Cell(row, 1).Value = time;
                 staticSheet.Cell(row, 2).Value = prod;
-                staticSheet.Cell(row, 3).Value = cons;
+                //staticSheet.Cell(row, 3).Value = cons;
                 row++;
             }
         }
@@ -409,7 +409,7 @@ public class SolarCalculator
 
 
 
-    /// Вычисляет научно точное положение Солнца (угол возвышения и азимут) в заданный момент времени,
+    /// Вычисляет точное положение Солнца (угол возвышения и азимут) в заданный момент времени,
     /// на основе координат местности (_latitude, _longitude) и текущей даты и времени.
     /// Используются астрономические формулы, учитывающие склонение Солнца, уравнение времени и часовой угол.
     private (double Elevation, double Azimuth) CalculateScientificSolarPosition(DateTime time)
@@ -637,7 +637,7 @@ public class SolarCalculator
             // Заголовки
             worksheet.Cell(1, 1).Value = "Дата";
             worksheet.Cell(1, 2).Value = "Выработка ";
-            worksheet.Cell(1, 3).Value = "Потребление ";
+            //worksheet.Cell(1, 3).Value = "Потребление ";
             worksheet.Cell(1, 5).Value = "Характеристики панелей:";
 
             writer.WriteLine("Дата | Выработка | Потребление ");
@@ -680,26 +680,26 @@ public class SolarCalculator
                     }
                 }
 
-                double dailyConsumption = _panels
-                    .Where(p => p.Type == "Статическая")
-                    .Sum(p => p.ConsumptionPower * p.Count * (sunsetTime - sunriseTime).TotalHours);
+                //double dailyConsumption = _panels
+                    //.Where(p => p.Type == "Статическая")
+                   // .Sum(p => p.ConsumptionPower * p.Count * (sunsetTime - sunriseTime).TotalHours);
 
                 totalEnergy += dailyProduction;
-                totalConsumption += dailyConsumption;
+                //totalConsumption += dailyConsumption;
 
                 // Запись в Excel
                 worksheet.Cell(row, 1).Value = date.ToString("yyyy-MM-dd");
                 worksheet.Cell(row, 2).Value = Math.Round(dailyProduction, 2);
-                worksheet.Cell(row, 3).Value = Math.Round(dailyConsumption, 2);
+                //worksheet.Cell(row, 3).Value = Math.Round(dailyConsumption, 2);
 
                 // Запись в TXT
-                writer.WriteLine($"{date:yyyy-MM-dd} | {dailyProduction:F2} | {dailyConsumption:F2}");
+                writer.WriteLine($"{date:yyyy-MM-dd} | {dailyProduction:F2}");
 
                 row++;
             }
 
             worksheet.Cell(row + 1, 1).Value = $"Итоговая выработка: {totalEnergy:F2} Вт⋅ч";
-            worksheet.Cell(row + 2, 1).Value = $"Итоговое потребление: {totalConsumption:F2} Вт⋅ч";
+            //worksheet.Cell(row + 2, 1).Value = $"Итоговое потребление: {totalConsumption:F2} Вт⋅ч";
 
             workbook.SaveAs(excelOutput);
 

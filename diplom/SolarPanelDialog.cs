@@ -42,7 +42,7 @@ public class SolarPanelDialog : Form
         rotationVertLabel = new Label { Text = "Поворот (верт.):", Location = new Point(10, 100) };
         rotationVertTextBox = new TextBox { Location = new Point(150, 100), Width = 120, Text = "0" };
 
-        rotationHorLabel = new Label { Text = "Поворот (гориз.):", Location = new Point(10, 130) };
+        rotationHorLabel = new Label { Text = "Поворот (гориз):", Location = new Point(10, 130) };
         rotationHorTextBox = new TextBox { Location = new Point(150, 130), Width = 120, Text = "0" };
 
         // Потребление
@@ -84,6 +84,8 @@ public class SolarPanelDialog : Form
 
         rotationVertLabel.Visible = rotationVertTextBox.Visible = !isStatic;
         rotationHorLabel.Visible = rotationHorTextBox.Visible = !isStatic;
+
+        consumptionLabel.Visible = consumptionTextBox.Visible = !isStatic;
     }
 
     private void ConfirmButton_Click(object sender, EventArgs e)

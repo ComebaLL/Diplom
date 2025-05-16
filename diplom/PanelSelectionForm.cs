@@ -2,8 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
+using System.ComponentModel; // Для BackgroundWorker
 
 namespace SolarPowerCalculator
 {
@@ -16,11 +19,19 @@ namespace SolarPowerCalculator
         private List<CheckBox> panelCheckBoxes = new List<CheckBox>();
         private Button showChartButton;
 
+        // Новые поля для прогресса
+        private ProgressBar progressBar;
+        private Label statusLabel;
+        private BackgroundWorker backgroundWorker;
+
+        private List<SolarPanel> panelsToCalculate;
+        private PeriodSelectionDialog.PeriodOption selectedPeriod;
+
         public PanelSelectionForm(List<SolarPanel> panels)
         {
             solarPanels = panels;
             Text = "Выбор солнечных панелей";
-            Size = new Size(650, 500);
+            Size = new Size(650, 550);
 
             panelContainer = new FlowLayoutPanel
             {
@@ -49,9 +60,6 @@ namespace SolarPowerCalculator
             calculateButton.Click += CalculateButton_Click;
             Controls.Add(calculateButton);
 
-            LoadPanels();
-
-            // Кнопка "Показать график"
             showChartButton = new Button
             {
                 Text = "Показать график",
@@ -61,6 +69,36 @@ namespace SolarPowerCalculator
             showChartButton.Click += ShowChartButton_Click;
             Controls.Add(showChartButton);
 
+            // Инициализация ProgressBar и Label (по умолчанию скрыты)
+            progressBar = new ProgressBar
+            {
+                Location = new Point(10, 420),
+                Size = new Size(620, 25),
+                Visible = false,
+                Minimum = 0,
+                Maximum = 100
+            };
+            Controls.Add(progressBar);
+
+            statusLabel = new Label
+            {
+                Location = new Point(10, 450),
+                Size = new Size(620, 25),
+                Text = "",
+                Visible = false
+            };
+            Controls.Add(statusLabel);
+
+            // Инициализация BackgroundWorker
+            backgroundWorker = new BackgroundWorker
+            {
+                WorkerReportsProgress = true
+            };
+            backgroundWorker.DoWork += BackgroundWorker_DoWork;
+            backgroundWorker.ProgressChanged += BackgroundWorker_ProgressChanged;
+            backgroundWorker.RunWorkerCompleted += BackgroundWorker_RunWorkerCompleted;
+
+            LoadPanels();
         }
 
         private void LoadPanels()
@@ -105,8 +143,8 @@ namespace SolarPowerCalculator
                     panel.IsChecked = checkBox.Checked;
             }
 
-            var selectedPanels = solarPanels.Where(p => p.IsChecked).ToList();
-            if (selectedPanels.Count == 0)
+            panelsToCalculate = solarPanels.Where(p => p.IsChecked).ToList();
+            if (panelsToCalculate.Count == 0)
             {
                 MessageBox.Show("Выберите хотя бы одну панель!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -117,21 +155,69 @@ namespace SolarPowerCalculator
             if (dialog.ShowDialog() != DialogResult.OK)
                 return;
 
-            var calculator = new SolarCalculator(selectedPanels);
+            selectedPeriod = dialog.SelectedPeriod;
 
-            switch (dialog.SelectedPeriod)
+            // Блокируем кнопку и показываем прогрессбар и статус
+            calculateButton.Enabled = false;
+            progressBar.Value = 0;
+            progressBar.Visible = true;
+            statusLabel.Text = "Выполняется расчет...";
+            statusLabel.Visible = true;
+
+            // Запускаем расчёт в фоне
+            backgroundWorker.RunWorkerAsync();
+        }
+
+        // Основной расчет в фоне
+        private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var calculator = new SolarCalculator(panelsToCalculate);
+
+            int totalSteps = 1; // По умолчанию 1 шаг
+
+            // Настройка количества шагов в зависимости от периода
+            switch (selectedPeriod)
             {
                 case PeriodSelectionDialog.PeriodOption.Week:
-                    if (selectedPanels.All(p => p.Type == "Статическая"))
+                    totalSteps = 100;
+                    break;
+                case PeriodSelectionDialog.PeriodOption.Month:
+                    totalSteps = 100;
+                    break;
+                case PeriodSelectionDialog.PeriodOption.Year:
+                    totalSteps = 100;
+                    break;
+            }
+
+            for (int step = 0; step <= totalSteps; step++)
+            {
+
+                Thread.Sleep(20); // Задержка для симуляции работы
+
+                // Отправляем прогресс
+                int progressPercent = (int)((step / (double)totalSteps) * 100);
+                backgroundWorker.ReportProgress(progressPercent);
+            }
+
+            // Запускаем основной расчет после прогресса 
+            switch (selectedPeriod)
+            {
+                case PeriodSelectionDialog.PeriodOption.Week:
+                    if (panelsToCalculate.All(p => p.Type == "Статическая"))
                         calculator.CalculateStaticPanelProductionForWeek();
-                    else if (selectedPanels.All(p => p.Type == "Динамическая"))
+                    else if (panelsToCalculate.All(p => p.Type == "Динамическая"))
                         calculator.CalculateTrackerPanelProductionForWeek();
+                    else
+                    {
+                        calculator.CalculateStaticPanelProductionForWeek();
+                        calculator.CalculateTrackerPanelProductionForWeek();
+                    }
                     break;
 
                 case PeriodSelectionDialog.PeriodOption.Month:
-                    if (selectedPanels.All(p => p.Type == "Статическая"))
+                    if (panelsToCalculate.All(p => p.Type == "Статическая"))
                         calculator.CalculateStaticPanelProductionForPeriod("Месяц");
-                    else if (selectedPanels.All(p => p.Type == "Динамическая"))
+                    else if (panelsToCalculate.All(p => p.Type == "Динамическая"))
                         calculator.CalculateTrackerPanelProductionForPeriod("Месяц");
                     else
                     {
@@ -141,9 +227,9 @@ namespace SolarPowerCalculator
                     break;
 
                 case PeriodSelectionDialog.PeriodOption.Year:
-                    if (selectedPanels.All(p => p.Type == "Статическая"))
+                    if (panelsToCalculate.All(p => p.Type == "Статическая"))
                         calculator.CalculateStaticPanelProductionForPeriod("Год");
-                    else if (selectedPanels.All(p => p.Type == "Динамическая"))
+                    else if (panelsToCalculate.All(p => p.Type == "Динамическая"))
                         calculator.CalculateTrackerPanelProductionForPeriod("Год");
                     else
                     {
@@ -152,6 +238,18 @@ namespace SolarPowerCalculator
                     }
                     break;
             }
+        }
+
+        private void BackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progressBar.Value = e.ProgressPercentage;
+        }
+
+        private void BackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            progressBar.Visible = false;
+            statusLabel.Visible = false;
+            calculateButton.Enabled = true;
 
             //MessageBox.Show("Расчёт завершён!", "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -193,8 +291,5 @@ namespace SolarPowerCalculator
             var chartForm = new ChartForm(dialog.SelectedPeriod);
             chartForm.Show();
         }
-
-
-
     }
 }
