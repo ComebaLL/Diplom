@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "CDWkX4ZXllI=",
+  "dgSpecHash": "fd1mtB0LhM0=",
   "success": true,
   "projectFilePath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\diplom.csproj",
   "expectedPackageFiles": [
@@ -64,8 +64,10 @@
     {
       "code": "NU1701",
       "level": "Warning",
-      "warningLevel": 1,
       "message": "Package 'LiveCharts 0.9.7' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\diplom.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\diplom.csproj",
       "libraryId": "LiveCharts",
       "targetGraphs": [
         "net8.0-windows7.0"
@@ -74,8 +76,10 @@
     {
       "code": "NU1701",
       "level": "Warning",
-      "warningLevel": 1,
       "message": "Package 'LiveCharts.WinForms 0.9.7.1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\diplom.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\diplom.csproj",
       "libraryId": "LiveCharts.WinForms",
       "targetGraphs": [
         "net8.0-windows7.0"
@@ -84,8 +88,10 @@
     {
       "code": "NU1701",
       "level": "Warning",
-      "warningLevel": 1,
       "message": "Package 'LiveCharts.Wpf 0.9.7' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\diplom.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\diplom.csproj",
       "libraryId": "LiveCharts.Wpf",
       "targetGraphs": [
         "net8.0-windows7.0"

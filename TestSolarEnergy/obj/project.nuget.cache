@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "9d57m88HXsM=",
+  "dgSpecHash": "ipGz+Nsha0o=",
   "success": false,
   "projectFilePath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\TestSolarEnergy\\TestSolarEnergy.csproj",
   "expectedPackageFiles": [
@@ -24,6 +24,8 @@
       "code": "NU1104",
       "level": "Error",
       "message": "Unable to find project 'C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom.WindowsForms\\diplom.WindowsForms.csproj'. Check that the project reference is valid and that the project file exists.",
+      "projectPath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\TestSolarEnergy\\TestSolarEnergy.csproj",
+      "filePath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\TestSolarEnergy\\TestSolarEnergy.csproj",
       "libraryId": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom.WindowsForms\\diplom.WindowsForms.csproj",
       "targetGraphs": [
         "net8.0"
@@ -32,8 +34,10 @@
     {
       "code": "NU1701",
       "level": "Warning",
-      "warningLevel": 1,
       "message": "Package 'OxyPlot.WindowsForms 2.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "projectPath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\TestSolarEnergy\\TestSolarEnergy.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\TestSolarEnergy\\TestSolarEnergy.csproj",
       "libraryId": "OxyPlot.WindowsForms",
       "targetGraphs": [
         "net8.0"

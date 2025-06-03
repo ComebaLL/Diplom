@@ -16,6 +16,9 @@
     <Compile Update="PerdionSeceltionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="SaveResultDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="SolarPanelDialog.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -3,36 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\solarpaneldialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:solarpaneldialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\panelselectionform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:panelselectionform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\energyexcelwriter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:energyexcelwriter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\perdionseceltiondialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:perdionseceltiondialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\solarenergycalculator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:solarenergycalculator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\solarpanel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:solarpanel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\mapform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:mapform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -43,8 +27,32 @@
       "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:mapform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\solarpanel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:solarpanel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\solarenergycalculator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:solarenergycalculator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\saveresultdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:saveresultdialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|c:\\users\\gumba\\documents\\github\\diplom\\diplom\\solarpaneldialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:solarpaneldialog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:chartform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\mapform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{6493393E-EE3E-4548-A681-BB5DB6BE5AFB}|diplom.csproj|solutionrelative:mapform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
   "DocumentGroupContainers": [
@@ -54,12 +62,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 3,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
@@ -74,38 +78,54 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "ChartForm.cs [Design]",
-              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\ChartForm.cs",
-              "RelativeDocumentMoniker": "ChartForm.cs",
-              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\ChartForm.cs [Design]",
-              "RelativeToolTip": "ChartForm.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-30T13:08:12.747Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "ChartForm.cs",
               "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\ChartForm.cs",
               "RelativeDocumentMoniker": "ChartForm.cs",
               "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\ChartForm.cs",
               "RelativeToolTip": "ChartForm.cs",
-              "ViewState": "AgIAAEoAAAAAAAAAAAAwwCQAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAAEEAAAAAAAAAAAAswFEAAABQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-30T13:00:24.627Z"
+              "WhenOpened": "2025-04-30T13:00:24.627Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "PerdionSeceltionDialog.cs",
               "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\PerdionSeceltionDialog.cs",
               "RelativeDocumentMoniker": "PerdionSeceltionDialog.cs",
               "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\PerdionSeceltionDialog.cs",
               "RelativeToolTip": "PerdionSeceltionDialog.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAABcAAABgAAAAAAAAAA==",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAwwFQAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-22T07:34:35.306Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "EnergyExcelWriter.cs",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\EnergyExcelWriter.cs",
+              "RelativeDocumentMoniker": "EnergyExcelWriter.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\EnergyExcelWriter.cs",
+              "RelativeToolTip": "EnergyExcelWriter.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAYwCAAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T15:39:15.652Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "SaveResultDialog.cs",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SaveResultDialog.cs",
+              "RelativeDocumentMoniker": "SaveResultDialog.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SaveResultDialog.cs",
+              "RelativeToolTip": "SaveResultDialog.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAAE8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-03T15:32:51.105Z",
               "EditorCaption": ""
             },
             {
@@ -116,89 +136,101 @@
               "RelativeDocumentMoniker": "PanelSelectionForm.cs",
               "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\PanelSelectionForm.cs",
               "RelativeToolTip": "PanelSelectionForm.cs",
-              "ViewState": "AgIAAOoAAAAAAAAAAAAAwP0AAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAADABAAAAAAAAAAAkwB0AAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-03-10T13:31:04.66Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "SolarPanel.cs",
-              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanel.cs",
-              "RelativeDocumentMoniker": "SolarPanel.cs",
-              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanel.cs",
-              "RelativeToolTip": "SolarPanel.cs",
-              "ViewState": "AgIAADUAAAAAAAAAAAAwwFEAAAAWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-05T02:52:04.453Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "SolarPanelDialog.cs",
-              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanelDialog.cs",
-              "RelativeDocumentMoniker": "SolarPanelDialog.cs",
-              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanelDialog.cs",
-              "RelativeToolTip": "SolarPanelDialog.cs",
-              "ViewState": "AgIAAD8AAAAAAAAAAAAYwFQAAABMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-16T01:26:49.114Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-26T00:04:00.633Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "MapForm.cs",
-              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\MapForm.cs",
-              "RelativeDocumentMoniker": "MapForm.cs",
-              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\MapForm.cs",
-              "RelativeToolTip": "MapForm.cs",
-              "ViewState": "AgIAAH8AAAAAAAAAAAAcwIsAAAA0AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-26T01:12:47.27Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "Form1.Designer.cs",
-              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Form1.Designer.cs",
-              "RelativeDocumentMoniker": "Form1.Designer.cs",
-              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Form1.Designer.cs",
-              "RelativeToolTip": "Form1.Designer.cs",
-              "ViewState": "AgIAAOwAAAAAAAAAAAAmwAABAAA2AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-25T23:56:09.274Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 7,
               "Title": "SolarEnergyCalculator.cs",
               "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarEnergyCalculator.cs",
               "RelativeDocumentMoniker": "SolarEnergyCalculator.cs",
               "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarEnergyCalculator.cs",
               "RelativeToolTip": "SolarEnergyCalculator.cs",
-              "ViewState": "AgIAAOsAAAAAAAAAAADwv70CAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAABcAAAAAAAAAAAAQwB0AAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-12-25T02:11:03.499Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 6,
+              "Title": "SolarPanel.cs",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanel.cs",
+              "RelativeDocumentMoniker": "SolarPanel.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanel.cs",
+              "RelativeToolTip": "SolarPanel.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABIAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-05T02:52:04.453Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "SolarPanelDialog.cs",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanelDialog.cs",
+              "RelativeDocumentMoniker": "SolarPanelDialog.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\SolarPanelDialog.cs",
+              "RelativeToolTip": "SolarPanelDialog.cs",
+              "ViewState": "AgIAAF8AAAAAAAAAAAAIwG0AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-16T01:26:49.114Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-26T00:04:00.633Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "MapForm.cs",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\MapForm.cs",
+              "RelativeDocumentMoniker": "MapForm.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\MapForm.cs",
+              "RelativeToolTip": "MapForm.cs",
+              "ViewState": "AgIAAJYAAAAAAAAAAAAmwKQAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-26T01:12:47.27Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Form1.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Form1.Designer.cs",
+              "RelativeDocumentMoniker": "Form1.Designer.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\Form1.Designer.cs",
+              "RelativeToolTip": "Form1.Designer.cs",
+              "ViewState": "AgIAABMBAAAAAAAAAAAswCUBAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-25T23:56:09.274Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ChartForm.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\ChartForm.cs",
+              "RelativeDocumentMoniker": "ChartForm.cs",
+              "ToolTip": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\ChartForm.cs [Design]",
+              "RelativeToolTip": "ChartForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-30T13:08:12.747Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "MapForm.cs [Design]",
               "DocumentMoniker": "C:\\Users\\gumba\\Documents\\GitHub\\Diplom\\diplom\\MapForm.cs",
               "RelativeDocumentMoniker": "MapForm.cs",

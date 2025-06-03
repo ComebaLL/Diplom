@@ -13,13 +13,18 @@ public class SolarPanel
     public double ConsumptionPower { get; set; } // Потребление (Вт)
     public double? AngleVertical { get; set; } // Угол наклона (вертикальный)
     public double? AngleHorizontal { get; set; } // Азимут (горизонтальный)
+    public int Count { get; set; } // Кол-во панелей 
+    public bool IsChecked { get; set; } // Выбрана ли панель
+    public bool IsChecked2 { get; set; } // Дополнительная отметка
+    public int RotationVertical { get; set; } // Угол поворота по вертикали
+    public int RotationHorizontal { get; set; } // Угол поворота по горизонтали
+    public double? Latitude { get; set; } // Широта
+    public double? Longitude { get; set; } // Долгота
 
-    public int Count { get; set; } // кол-во панелей 
+    public int Group { get; set; } // 1 или 2
 
-    public bool IsChecked { get; set; } // проверка выбранна ли панель
+    public double ReturnEnergy { get; set; } = 0.1; // по умолчанию
 
-    public int RotationVertical { get; set; } // вертикальный угол поворота
-    public int RotationHorizontal { get; set; } // горизонтальный угол поворота
 
 
     public SolarPanel(
@@ -30,7 +35,10 @@ public class SolarPanel
         double? angleHorizontal = null,
         int count = 1,
         int rotationVertical = 0,
-        int rotationHorizontal = 0)
+        int rotationHorizontal = 0,
+        bool isChecked2 = false,
+        double? latitude = null,
+        double? longitude = null)
     {
         Type = type;
         Power = power;
@@ -40,14 +48,15 @@ public class SolarPanel
         Count = count;
         RotationVertical = rotationVertical;
         RotationHorizontal = rotationHorizontal;
+        IsChecked2 = isChecked2;
+        Latitude = latitude;
+        Longitude = longitude;
     }
-
 
     public override string ToString()
     {
         return $"{Type} | {Power} Вт | Потребление: {ConsumptionPower} Вт | Кол-во: {Count}";
     }
-
 
     public void Update(SolarPanel newData)
     {
@@ -58,8 +67,11 @@ public class SolarPanel
         ConsumptionPower = newData.ConsumptionPower;
         Count = newData.Count;
         IsChecked = newData.IsChecked;
+        IsChecked2 = newData.IsChecked2;
         RotationVertical = newData.RotationVertical;
         RotationHorizontal = newData.RotationHorizontal;
+        Latitude = newData.Latitude;
+        Longitude = newData.Longitude;
     }
 
     public List<string> Validate()
@@ -81,7 +93,4 @@ public class SolarPanel
 
         return errors;
     }
-
-
 }
-

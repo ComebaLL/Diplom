@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("diplom")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ad758f70a8d1aec4f9cc98864490911ea4c8ac26")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0162c20113eb0d1416e0f6a35a412fe66c38cb3a")]
 [assembly: System.Reflection.AssemblyProductAttribute("diplom")]
 [assembly: System.Reflection.AssemblyTitleAttribute("diplom")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
